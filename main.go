@@ -2,25 +2,53 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
-	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
-var docStyle = lipgloss.NewStyle().Margin(1, 2)
+var (
+	titleStyle = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("#7D56F4")).
+			MarginBottom(1)
 
-type item struct {
-	title, desc string
-}
+	labelStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#00D7FF")).
+			Bold(true)
 
-func (i item) Title() string       { return i.title }
-func (i item) Description() string { return i.desc }
-func (i item) FilterValue() string { return i.title }
+	selectionStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#FFF")).
+			Background(lipgloss.Color("#1E1E1E")).
+			Padding(0, 1).
+			MarginBottom(1)
+
+	commitSuccessStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("#00FF00")).
+				Bold(true).
+				MarginTop(1)
+
+	errorStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#FF0000")).
+			Bold(true)
+)
 
 type model struct {
-	list list.Model
+	step        int
+	commitType  string
+	description string
+	body        string
+	options     []string
+	selected    int
+}
+
+func initialModel() model {
+	return model{
+		options:  []string{"feat (A new feature)", "fix (A bug fix)", "chore (Routine tasks)"},
+		selected: -1,
+	}
 }
 
 func (m model) Init() tea.Cmd {
@@ -30,57 +58,79 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if msg.String() == "ctrl+c" {
+		switch msg.String() {
+		case "ctrl+c", "q":
 			return m, tea.Quit
+
+		case "1", "2", "3": // Handling number selection (1, 2, or 3)
+			m.selected = int(msg.String()[0] - '1')  // Convert the string to an integer (0-indexed)
+			m.commitType = m.options[m.selected][:4] // Assign the commit type (first 4 chars like "feat", "fix", etc.)
+			m.step++
+
+		case "enter":
+			if m.step == 1 { // After selecting commit type
+				m.step++
+			} else if m.step == 3 { // Final step, create the commit
+				m.commit()
+				return m, tea.Quit
+			}
+
+		default:
+			if m.step == 2 {
+				m.description += msg.String()
+			} else if m.step == 3 {
+				m.body += msg.String()
+			}
 		}
-	case tea.WindowSizeMsg:
-		h, v := docStyle.GetFrameSize()
-		m.list.SetSize(msg.Width-h, msg.Height-v)
 	}
 
-	var cmd tea.Cmd
-	m.list, cmd = m.list.Update(msg)
-	return m, cmd
+	return m, nil
 }
 
 func (m model) View() string {
-	return docStyle.Render(m.list.View())
+	switch m.step {
+	case 0:
+		// List of commit types
+		optionsView := titleStyle.Render("Select Commit Type") + "\n"
+		for i, option := range m.options {
+			optionsView += fmt.Sprintf("%d. %s\n", i+1, option)
+		}
+		return optionsView
+
+	case 1:
+		return labelStyle.Render("Short Description: ") + selectionStyle.Render(m.description)
+	case 2:
+		return labelStyle.Render("Optional Long Description (press enter to skip): ") + selectionStyle.Render(m.body)
+	case 3:
+		return commitSuccessStyle.Render("Commit created successfully! Press q to quit.")
+	default:
+		return errorStyle.Render("Unexpected step")
+	}
+}
+
+func (m model) commit() {
+	commitMessage := fmt.Sprintf("%s: %s\n\n%s", m.commitType, m.description, m.body)
+	repo, err := git.PlainOpen(".")
+	if err != nil {
+		log.Fatal(err)
+	}
+	w, err := repo.Worktree()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = w.Commit(commitMessage, &git.CommitOptions{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Commit created successfully!")
 }
 
 func main() {
-	items := []list.Item{
-		item{title: "Raspberry Pi’s", desc: "I have ’em all over my house"},
-		item{title: "Nutella", desc: "It's good on toast"},
-		item{title: "Bitter melon", desc: "It cools you down"},
-		item{title: "Nice socks", desc: "And by that I mean socks without holes"},
-		item{title: "Eight hours of sleep", desc: "I had this once"},
-		item{title: "Cats", desc: "Usually"},
-		item{title: "Plantasia, the album", desc: "My plants love it too"},
-		item{title: "Pour over coffee", desc: "It takes forever to make though"},
-		item{title: "VR", desc: "Virtual reality...what is there to say?"},
-		item{title: "Noguchi Lamps", desc: "Such pleasing organic forms"},
-		item{title: "Linux", desc: "Pretty much the best OS"},
-		item{title: "Business school", desc: "Just kidding"},
-		item{title: "Pottery", desc: "Wet clay is a great feeling"},
-		item{title: "Shampoo", desc: "Nothing like clean hair"},
-		item{title: "Table tennis", desc: "It’s surprisingly exhausting"},
-		item{title: "Milk crates", desc: "Great for packing in your extra stuff"},
-		item{title: "Afternoon tea", desc: "Especially the tea sandwich part"},
-		item{title: "Stickers", desc: "The thicker the vinyl the better"},
-		item{title: "20° Weather", desc: "Celsius, not Fahrenheit"},
-		item{title: "Warm light", desc: "Like around 2700 Kelvin"},
-		item{title: "The vernal equinox", desc: "The autumnal equinox is pretty good too"},
-		item{title: "Gaffer’s tape", desc: "Basically sticky fabric"},
-		item{title: "Terrycloth", desc: "In other words, towel fabric"},
-	}
-
-	m := model{list: list.New(items, list.NewDefaultDelegate(), 0, 0)}
-	m.list.Title = "My Fave Things"
-
-	p := tea.NewProgram(m, tea.WithAltScreen())
-
-	if _, err := p.Run(); err != nil {
-		fmt.Println("Error running program:", err)
+	p := tea.NewProgram(initialModel())
+	if err := p.Start(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error running program: %v\n", err)
 		os.Exit(1)
 	}
 }
