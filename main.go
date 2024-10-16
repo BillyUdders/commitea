@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"os"
-
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/go-git/go-git/v5"
+	"log"
+	"os"
 )
 
 var (
@@ -20,8 +20,7 @@ var (
 			Bold(true)
 
 	selectionStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFF")).
-			Background(lipgloss.Color("#1E1E1E")).
+			Foreground(lipgloss.Color("#FFFFFF")).
 			Padding(0, 1).
 			MarginBottom(1)
 
@@ -36,12 +35,17 @@ var (
 )
 
 type model struct {
-	step        int
+	step     int
+	selected int
+	options  []string
+
 	commitType  string
+	subject     string
 	description string
-	body        string
-	options     []string
-	selected    int
+}
+
+func (m model) CommitMessage() string {
+	return fmt.Sprintf("%s(%s): %s", m.commitType, m.subject, m.description)
 }
 
 func initialModel() model {
@@ -55,36 +59,76 @@ func (m model) Init() tea.Cmd {
 	return nil
 }
 
+func (m model) commit() {
+	repo, err := git.PlainOpen(".")
+	if err != nil {
+		log.Fatal(err)
+	}
+	w, err := repo.Worktree()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = w.Commit(m.CommitMessage(), &git.CommitOptions{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	commitSuccessStyle.Render("Commit created successfully!")
+}
+
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
+
 		case "ctrl+c", "q":
 			return m, tea.Quit
 
 		case "1", "2", "3": // Handling number selection (1, 2, or 3)
-			m.selected = int(msg.String()[0] - '1')  // Convert the string to an integer (0-indexed)
-			m.commitType = m.options[m.selected][:4] // Assign the commit type (first 4 chars like "feat", "fix", etc.)
-			m.step++
+			if m.step == 0 {
+				m.selected = int(msg.String()[0] - '1') // Convert the string to an integer (0-indexed)
+				m.commitType = m.options[m.selected][:4]
+				m.step++
+			} else if m.step == 1 {
+				m.subject += msg.String()
+			} else if m.step == 2 {
+				m.description += msg.String()
+			}
 
 		case "enter":
-			if m.step == 1 { // After selecting commit type
+			if m.step == 1 || m.step == 2 {
 				m.step++
-			} else if m.step == 3 { // Final step, create the commit
+			} else if m.step == 3 {
 				m.commit()
 				return m, tea.Quit
 			}
 
-		default:
-			if m.step == 2 {
-				m.description += msg.String()
-			} else if m.step == 3 {
-				m.body += msg.String()
+		case "backspace":
+			if m.step == 1 {
+				m.subject = characterDelete(m.subject)
+			} else if m.step == 2 {
+				m.description = characterDelete(m.description)
 			}
+
+		default:
+			if m.step == 1 {
+				m.subject += msg.String()
+			} else if m.step == 2 {
+				m.description += msg.String()
+			}
+
 		}
 	}
 
 	return m, nil
+}
+
+func characterDelete(val string) string {
+	if len(val) > 0 {
+		return val[:len(val)-1]
+	}
+	return val
 }
 
 func (m model) View() string {
@@ -96,40 +140,23 @@ func (m model) View() string {
 			optionsView += fmt.Sprintf("%d. %s\n", i+1, option)
 		}
 		return optionsView
-
 	case 1:
-		return labelStyle.Render("Short Description: ") + selectionStyle.Render(m.description)
+		return labelStyle.Render("Subject: ") + selectionStyle.Render(m.subject)
 	case 2:
-		return labelStyle.Render("Optional Long Description (press enter to skip): ") + selectionStyle.Render(m.body)
+		return labelStyle.Render("Description: ") + selectionStyle.Render(m.description)
 	case 3:
-		return commitSuccessStyle.Render("Commit created successfully! Press q to quit.")
+		m.commit()
+		return commitSuccessStyle.Render(m.CommitMessage())
+	case 4:
+		return commitSuccessStyle.Render("Pushed!")
 	default:
-		return errorStyle.Render("Unexpected step")
+		return errorStyle.Render("yall fucked up")
 	}
-}
-
-func (m model) commit() {
-	commitMessage := fmt.Sprintf("%s: %s\n\n%s", m.commitType, m.description, m.body)
-	repo, err := git.PlainOpen(".")
-	if err != nil {
-		log.Fatal(err)
-	}
-	w, err := repo.Worktree()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	_, err = w.Commit(commitMessage, &git.CommitOptions{})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("Commit created successfully!")
 }
 
 func main() {
 	p := tea.NewProgram(initialModel())
-	if err := p.Start(); err != nil {
+	if _, err := p.Run(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error running program: %v\n", err)
 		os.Exit(1)
 	}
