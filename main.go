@@ -54,10 +54,9 @@ func main() {
 			huh.NewSelect[string]().
 				Title("Choose Commit Type:").
 				Options(
-					huh.NewOption("CI/CD", "ci"),
-					huh.NewOption("Infrastructure", "infra"),
-					huh.NewOption("App Configuration", "app_config"),
-					huh.NewOption("Feature Work", "feature"),
+					huh.NewOption("Feature", "feature"),
+					huh.NewOption("Hotfix", "hotfix"),
+					huh.NewOption("Chore", "chore"),
 				).
 				Value(&commitType),
 		),
@@ -70,8 +69,6 @@ func main() {
 				Title("Write a description (Max 400 characters)").
 				CharLimit(400).
 				Value(&description),
-		),
-		huh.NewGroup(
 			huh.NewConfirm().
 				Title("Stage all?").
 				Value(&shouldStageAll),
