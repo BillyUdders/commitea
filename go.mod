@@ -4,6 +4,7 @@ go 1.23.2
 
 require (
 	github.com/charmbracelet/huh v0.6.0
+	github.com/charmbracelet/huh/spinner v0.0.0-20241011224433-983a50776b31
 	github.com/go-git/go-git/v5 v5.12.0
 )
 

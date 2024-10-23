@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/charmbracelet/huh"
+	"github.com/charmbracelet/huh/spinner"
 	"github.com/go-git/go-git/v5"
 	"log"
 )
@@ -86,5 +87,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	commit()
+	err = spinner.New().Title("Commiting...").Action(commit).Run()
+	if err != nil {
+		return
+	}
 }
