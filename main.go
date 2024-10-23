@@ -72,11 +72,11 @@ func main() {
 		),
 		huh.NewGroup(
 			huh.NewConfirm().
-				Title("Would you like to add all files?").
+				Title("Stage all?").
 				Value(&shouldStageAll),
 
 			huh.NewConfirm().
-				Title("Would you like to shouldPush?").
+				Title("Push?").
 				Value(&shouldPush),
 		),
 	)
