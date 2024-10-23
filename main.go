@@ -71,7 +71,6 @@ func main() {
 			huh.NewConfirm().
 				Title("Stage all?").
 				Value(&shouldStageAll),
-
 			huh.NewConfirm().
 				Title("Push?").
 				Value(&shouldPush),
@@ -83,8 +82,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = spinner.New().Title("Commiting...").Action(commit).Run()
+	err = spinner.New().
+		Title("Commiting...").
+		Type(spinner.Line).
+		Action(commit).
+		Run()
 	if err != nil {
-		return
+		log.Fatal(err)
 	}
 }
