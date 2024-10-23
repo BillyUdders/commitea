@@ -11,8 +11,8 @@ var (
 	commitType     string
 	subject        string
 	description    string
-	shouldStageAll bool
-	shouldPush     bool
+	shouldStageAll = true
+	shouldPush     = true
 )
 
 func commit() {
