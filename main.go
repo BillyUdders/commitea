@@ -64,10 +64,9 @@ func main() {
 			huh.NewInput().
 				Title("Enter commit subject").
 				Value(&subject),
-
-			huh.NewText().
-				Title("Write a description (Max 400 characters)").
-				CharLimit(400).
+			huh.NewInput().
+				Title("Write a description (Max 200 characters)").
+				CharLimit(200).
 				Value(&description),
 			huh.NewConfirm().
 				Title("Stage all?").
