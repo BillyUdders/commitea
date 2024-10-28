@@ -27,12 +27,9 @@ func main() {
 	switch command {
 	case "commit":
 		actions.RunCommitForm()
-		// Add your commit logic here
 	case "sync":
 		fmt.Println("Executing 'sync' command...")
-		// Add your sync logic here
 	case "ls":
 		fmt.Println("Executing 'ls' command...")
-		// Add your ls logic here
 	}
 }

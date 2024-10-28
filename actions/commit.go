@@ -4,11 +4,22 @@ import (
 	"fmt"
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/huh/spinner"
-	"github.com/go-git/go-git/v5"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/table"
 	"log"
 )
 
 var (
+	base16 = huh.ThemeBase16()
+
+	success = lipgloss.NewStyle().
+		Bold(true).
+		Foreground(lipgloss.Color("#9EB98A"))
+
+	info = lipgloss.NewStyle().
+		Bold(true).
+		Foreground(lipgloss.Color("#87BFCE"))
+
 	commitType     string
 	subject        string
 	description    string
@@ -43,7 +54,7 @@ func RunCommitForm() {
 				Title("Push?").
 				Value(&shouldPush),
 		),
-	)
+	).WithTheme(base16)
 
 	err := form.Run()
 	if err != nil {
@@ -53,41 +64,56 @@ func RunCommitForm() {
 	err = spinner.New().
 		Title("Commiting...").
 		Type(spinner.Line).
+		Style(info).
 		Action(commit).
 		Run()
 	if err != nil {
 		log.Fatal(err)
 	}
+
 }
 
 func commit() {
-	repo, err := git.PlainOpen(".")
-	if err != nil {
-		log.Fatal(err)
+	//repo, err := git.PlainOpen(".")
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//
+	//w, err := repo.Worktree()
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//
+	//if shouldStageAll {
+	//	err = w.AddGlob(".")
+	//	if err != nil {
+	//		log.Fatal(err)
+	//	}
+	//}
+
+	msg := fmt.Sprintf("%s(%s): %s", commitType, subject, description)
+	//_, err = w.Commit(msg, &git.CommitOptions{})
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//
+	//if shouldPush {
+	//	err = repo.Push(&git.PushOptions{})
+	//	if err != nil {
+	//		log.Fatal(err)
+	//	}
+	//}
+
+	rows := [][]string{
+		{"Username", "Blah"},
+		{"Commit message", msg},
+		{"Number of Files Change", "10"},
 	}
 
-	w, err := repo.Worktree()
-	if err != nil {
-		log.Fatal(err)
-	}
+	t := table.New().
+		Border(lipgloss.NormalBorder()).
+		BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
+		Rows(rows...)
 
-	if shouldStageAll {
-		err = w.AddGlob(".")
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-
-	commitMessage := fmt.Sprintf("%s(%s): %s", commitType, subject, description)
-	_, err = w.Commit(commitMessage, &git.CommitOptions{})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if shouldPush {
-		err = repo.Push(&git.PushOptions{})
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
+	fmt.Println(t.Render())
 }
