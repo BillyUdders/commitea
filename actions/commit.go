@@ -92,12 +92,28 @@ func doGitActions(stage bool, push bool) {
 
 	gitActions := orderedmap.NewOrderedMap[string, func()]()
 	if stage {
-		gitActions.Set("Staging All", doStageAll(w))
+		gitActions.Set("Staging All", func() {
+			err = w.AddGlob(".")
+			if err != nil {
+				log.Fatal(err)
+			}
+		})
 	}
-	gitActions.Set("Commiting", doCommit(w))
+	gitActions.Set("Commiting", func() {
+		_, err = w.Commit(commitMsg(), &git.CommitOptions{})
+		if err != nil {
+			log.Fatal(err)
+		}
+	})
 	if push {
-		gitActions.Set("Pushing", doPush(repo))
+		gitActions.Set("Pushing", func() {
+			err = repo.Push(&git.PushOptions{})
+			if err != nil {
+				log.Fatal(err)
+			}
+		})
 	}
+
 	for key, fn := range gitActions.Iterator() {
 		err := spinner.New().
 			Title(fmt.Sprintf("%s...", key)).
@@ -105,33 +121,6 @@ func doGitActions(stage bool, push bool) {
 			Style(info).
 			Action(fn).
 			Run()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-}
-
-func doStageAll(w *git.Worktree) func() {
-	return func() {
-		err := w.AddGlob(".")
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-}
-
-func doCommit(w *git.Worktree) func() {
-	return func() {
-		_, err := w.Commit(commitMsg(), &git.CommitOptions{})
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-}
-
-func doPush(repo *git.Repository) func() {
-	return func() {
-		err := repo.Push(&git.PushOptions{})
 		if err != nil {
 			log.Fatal(err)
 		}
