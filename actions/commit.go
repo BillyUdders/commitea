@@ -6,19 +6,23 @@ import (
 	"github.com/charmbracelet/huh/spinner"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
+	"github.com/elliotchance/orderedmap/v2"
+	"github.com/go-git/go-git/v5"
 	"log"
 )
 
 var (
 	base16 = huh.ThemeBase16()
+	green  = lipgloss.Color("#9EB98A")
+	blue   = lipgloss.Color("#87BFCE")
 
 	success = lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color("#9EB98A"))
+		Foreground(green)
 
 	info = lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color("#87BFCE"))
+		Foreground(blue)
 
 	commitType     string
 	subject        string
@@ -28,6 +32,16 @@ var (
 )
 
 func RunCommitForm() {
+	infoRows := [][]string{
+		{"Username", "Blah"},
+		{"Number of Files Change", "10"},
+	}
+	infoTable := table.New().
+		Border(lipgloss.NormalBorder()).
+		BorderStyle(lipgloss.NewStyle().Foreground(green)).
+		Rows(infoRows...)
+	fmt.Println(infoTable.Render())
+
 	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().
@@ -55,65 +69,75 @@ func RunCommitForm() {
 				Value(&shouldPush),
 		),
 	).WithTheme(base16)
-
 	err := form.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = spinner.New().
-		Title("Commiting...").
-		Type(spinner.Line).
-		Style(info).
-		Action(commit).
-		Run()
+	doGitActions(shouldStageAll, shouldPush)
+
+	fmt.Println(info.Render(fmt.Sprintf("\uE0B4 %s", commitMsg())))
+	fmt.Println(success.Render("Done!"))
+}
+
+func doGitActions(stage bool, push bool) {
+	repo, err := git.PlainOpen(".")
+	if err != nil {
+		log.Fatal(err)
+	}
+	w, err := repo.Worktree()
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	gitActions := orderedmap.NewOrderedMap[string, func()]()
+	if stage {
+		gitActions.Set("Staging All", doStageAll(w))
+	}
+	gitActions.Set("Commiting", doCommit(w))
+	if push {
+		gitActions.Set("Pushing", doPush(repo))
+	}
+	for key, fn := range gitActions.Iterator() {
+		err := spinner.New().
+			Title(fmt.Sprintf("%s...", key)).
+			Type(spinner.Line).
+			Style(info).
+			Action(fn).
+			Run()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 }
 
-func commit() {
-	//repo, err := git.PlainOpen(".")
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//
-	//w, err := repo.Worktree()
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//
-	//if shouldStageAll {
-	//	err = w.AddGlob(".")
-	//	if err != nil {
-	//		log.Fatal(err)
-	//	}
-	//}
-
-	msg := fmt.Sprintf("%s(%s): %s", commitType, subject, description)
-	//_, err = w.Commit(msg, &git.CommitOptions{})
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//
-	//if shouldPush {
-	//	err = repo.Push(&git.PushOptions{})
-	//	if err != nil {
-	//		log.Fatal(err)
-	//	}
-	//}
-
-	rows := [][]string{
-		{"Username", "Blah"},
-		{"Commit message", msg},
-		{"Number of Files Change", "10"},
+func doStageAll(w *git.Worktree) func() {
+	return func() {
+		err := w.AddGlob(".")
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
+}
 
-	t := table.New().
-		Border(lipgloss.NormalBorder()).
-		BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
-		Rows(rows...)
+func doCommit(w *git.Worktree) func() {
+	return func() {
+		_, err := w.Commit(commitMsg(), &git.CommitOptions{})
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+}
 
-	fmt.Println(t.Render())
+func doPush(repo *git.Repository) func() {
+	return func() {
+		err := repo.Push(&git.PushOptions{})
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
+func commitMsg() string {
+	return fmt.Sprintf("%s(%s): %s", commitType, subject, description)
 }
