@@ -25,9 +25,12 @@ func (c CommitDetails) commitMessage() string {
 
 func RunCommitForm() {
 	repo, workTree, _ := common.GetGitObjects()
-	showGitStats(repo, workTree)
+	showGitStats(workTree, repo)
 
-	c := CommitDetails{}
+	c := CommitDetails{
+		shouldStageAll: true,
+		shouldPush:     true,
+	}
 	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().
@@ -69,7 +72,7 @@ func RunCommitForm() {
 	}
 }
 
-func showGitStats(r *git.Repository, w *git.Worktree) {
+func showGitStats(w *git.Worktree, r *git.Repository) {
 	status, err := w.Status()
 	if err != nil {
 		common.HandleError(err)
@@ -82,7 +85,6 @@ func showGitStats(r *git.Repository, w *git.Worktree) {
 	if err != nil {
 		common.HandleError(err)
 	}
-
 	infoRows := [][]string{
 		{"Branch name", head.Name().Short()},
 		{"Latest commit", commit.String()},
@@ -92,7 +94,7 @@ func showGitStats(r *git.Repository, w *git.Worktree) {
 		Border(lipgloss.RoundedBorder()).
 		BorderColumn(true).
 		BorderRow(true).
-		BorderStyle(lipgloss.NewStyle().Foreground(common.Green).Bold(true)).
+		BorderStyle(common.SuccessText).
 		Rows(infoRows...)
 	fmt.Println(infoTable.Render())
 }
