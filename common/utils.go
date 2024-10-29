@@ -39,7 +39,7 @@ type GitActor struct {
 	Err       error
 }
 
-func (g *GitActor) ShowGitStats() ([][]string, error) {
+func (g *GitActor) RepoStats() ([][]string, error) {
 	head, err := g.Repo.Head()
 	if err != nil {
 		return nil, err

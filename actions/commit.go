@@ -25,7 +25,7 @@ func (c CommitDetails) commitMessage() string {
 func RunCommitForm() {
 	actor := common.NewGitActor("")
 
-	stats, err := actor.ShowGitStats()
+	stats, err := actor.RepoStats()
 	if err != nil {
 		common.HandleError(err)
 	}
@@ -54,7 +54,7 @@ func RunCommitForm() {
 		),
 		huh.NewGroup(
 			huh.NewInput().
-				Title("Enter commit subject").
+				Title("Enter doCommit subject").
 				Value(&c.subject),
 			huh.NewInput().
 				Title("Write a description (Max 200 characters)").
@@ -73,7 +73,7 @@ func RunCommitForm() {
 		common.HandleError(err)
 	}
 
-	msg, err := commit(actor, c)
+	msg, err := doCommit(actor, c)
 	if err != nil {
 		common.HandleError(err)
 	} else {
@@ -82,7 +82,7 @@ func RunCommitForm() {
 	}
 }
 
-func commit(actor *common.GitActor, c CommitDetails) (string, error) {
+func doCommit(actor *common.GitActor, c CommitDetails) (string, error) {
 	actor.CommitMsg = c.commitMessage()
 	actions := orderedmap.NewOrderedMap[string, func()]()
 	if c.shouldStageAll {
