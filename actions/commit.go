@@ -8,7 +8,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
 	"github.com/elliotchance/orderedmap/v2"
-	"github.com/go-git/go-git/v5"
 )
 
 type CommitDetails struct {
@@ -24,11 +23,19 @@ func (c CommitDetails) commitMessage() string {
 }
 
 func RunCommitForm() {
-	repo, workTree, _ := common.GetGitObjects()
-	err := showGitStats(workTree, repo)
+	actor := common.NewGitActor("")
+
+	stats, err := actor.ShowGitStats()
 	if err != nil {
 		common.HandleError(err)
 	}
+	infoTable := table.New().
+		Border(lipgloss.RoundedBorder()).
+		BorderColumn(true).
+		BorderRow(true).
+		BorderStyle(common.SuccessText).
+		Rows(stats...)
+	fmt.Println(infoTable.Render())
 
 	c := CommitDetails{
 		shouldStageAll: true,
@@ -66,7 +73,7 @@ func RunCommitForm() {
 		common.HandleError(err)
 	}
 
-	msg, err := doGitActions(workTree, repo, c)
+	msg, err := commit(actor, c)
 	if err != nil {
 		common.HandleError(err)
 	} else {
@@ -75,53 +82,17 @@ func RunCommitForm() {
 	}
 }
 
-func showGitStats(w *git.Worktree, r *git.Repository) error {
-	head, err := r.Head()
-	if err != nil {
-		return err
-	}
-	commit, err := r.CommitObject(head.Hash())
-	if err != nil {
-		return err
-	}
-	status, err := w.Status()
-	if err != nil {
-		return err
-	}
-	infoRows := [][]string{
-		{"Branch name", head.Name().Short()},
-		{"Latest commit", commit.String()},
-		{"Dirty files", status.String()},
-	}
-	infoTable := table.New().
-		Border(lipgloss.RoundedBorder()).
-		BorderColumn(true).
-		BorderRow(true).
-		BorderStyle(common.SuccessText).
-		Rows(infoRows...)
-	fmt.Println(infoTable.Render())
-
-	return nil
-}
-
-func doGitActions(w *git.Worktree, repo *git.Repository, c CommitDetails) (string, error) {
-	msg := c.commitMessage()
-	var err error
-
+func commit(actor *common.GitActor, c CommitDetails) (string, error) {
+	actor.CommitMsg = c.commitMessage()
 	actions := orderedmap.NewOrderedMap[string, func()]()
 	if c.shouldStageAll {
-		actions.Set("Staging All", func() {
-			err = w.AddGlob(".")
-		})
+		actions.Set("Staging All", actor.StageAll)
 	}
-	actions.Set("Commiting", func() {
-		_, err = w.Commit(msg, &git.CommitOptions{})
-	})
+	actions.Set("Commiting", actor.Commit)
 	if c.shouldPush {
-		actions.Set("Pushing", func() {
-			err = repo.Push(&git.PushOptions{})
-		})
+		actions.Set("Pushing", actor.Push)
 	}
+
 	for key, fn := range actions.Iterator() {
 		_ = spinner.New().
 			Title(fmt.Sprintf("%s...", key)).
@@ -129,10 +100,9 @@ func doGitActions(w *git.Worktree, repo *git.Repository, c CommitDetails) (strin
 			Style(common.InfoText).
 			Action(fn).
 			Run()
-		if err != nil {
-			return "", err
+		if actor.Err != nil {
+			return "", actor.Err
 		}
 	}
-
-	return msg, nil
+	return actor.CommitMsg, nil
 }

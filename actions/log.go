@@ -11,10 +11,10 @@ import (
 )
 
 func RunLog() {
-	_, _, commitIter := common.GetGitObjects()
+	actor := common.NewGitActor("")
 
 	logCount := 0
-	err := commitIter.ForEach(func(c *object.Commit) error {
+	err := actor.Commits.ForEach(func(c *object.Commit) error {
 		if logCount >= 10 {
 			return nil
 		}
