@@ -84,6 +84,7 @@ func RunCommitForm() {
 
 func doCommit(actor *common.GitActor, c CommitDetails) (string, error) {
 	actor.CommitMsg = c.commitMessage()
+
 	actions := orderedmap.NewOrderedMap[string, func()]()
 	if c.shouldStageAll {
 		actions.Set("Staging All", actor.StageAll)

@@ -33,7 +33,7 @@ func prettyPrintCommit(c *object.Commit) {
 	if idx == -1 {
 		msg = common.SuccessText.Render(c.Message)
 	} else {
-		msg = fmt.Sprintf(common.SuccessText.Render(c.Message[:idx]) + c.Message[idx+1:])
+		msg = fmt.Sprintf(common.SuccessText.Render(c.Message[:idx]) + c.Message[idx:])
 	}
 	fmt.Println(
 		common.LogText1.Underline(true).Render(c.Hash.String()[0:6]),
