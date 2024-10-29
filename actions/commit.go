@@ -44,7 +44,7 @@ func RunCommitForm() {
 	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().
-				Title("Choose Commit Type:").
+				Title("Choose commit type:").
 				Options(
 					huh.NewOption("Feature", "feature"),
 					huh.NewOption("Hotfix", "hotfix"),
@@ -54,7 +54,7 @@ func RunCommitForm() {
 		),
 		huh.NewGroup(
 			huh.NewInput().
-				Title("Enter doCommit subject").
+				Title("Enter commit subject").
 				Value(&c.subject),
 			huh.NewInput().
 				Title("Write a description (Max 200 characters)").

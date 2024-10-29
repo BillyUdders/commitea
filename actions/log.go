@@ -15,7 +15,7 @@ func RunLog() {
 
 	logCount := 0
 	err := actor.Commits.ForEach(func(c *object.Commit) error {
-		if logCount >= 10 {
+		if logCount >= 20 {
 			return nil
 		}
 		prettyPrintCommit(c)
@@ -37,11 +37,11 @@ func prettyPrintCommit(c *object.Commit) {
 	}
 
 	fmt.Println(
-		common.InfoText.Foreground(common.Purple).Underline(true).Render(fmt.Sprintf("\uEAFC %s", c.Hash.String()[0:6])),
+		common.InfoText.Foreground(common.Purple).Underline(true).Render(c.Hash.String()[0:6]),
 		"-",
 		msg,
 		common.InfoText.Foreground(common.Gray).Render(fmt.Sprintf("(%s)", formatTime(c.Author.When))),
-		common.InfoText.Foreground(common.Orange).Render(fmt.Sprintf("[%s]", c.Author.Name)),
+		common.InfoText.Foreground(common.Cyan).Render(fmt.Sprintf("[%s]", c.Author.Name)),
 	)
 }
 
