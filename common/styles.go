@@ -31,4 +31,8 @@ var (
 	ErrorText = lipgloss.NewStyle().
 			Bold(true).
 			Foreground(Red)
+
+	LogText1 = InfoText.Foreground(Purple)
+	LogText2 = InfoText.Foreground(Gray)
+	LogText3 = InfoText.Foreground(Cyan)
 )
