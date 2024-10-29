@@ -73,15 +73,15 @@ func RunCommitForm() {
 }
 
 func showGitStats(w *git.Worktree, r *git.Repository) {
-	status, err := w.Status()
-	if err != nil {
-		common.HandleError(err)
-	}
 	head, err := r.Head()
 	if err != nil {
 		common.HandleError(err)
 	}
 	commit, err := r.CommitObject(head.Hash())
+	if err != nil {
+		common.HandleError(err)
+	}
+	status, err := w.Status()
 	if err != nil {
 		common.HandleError(err)
 	}

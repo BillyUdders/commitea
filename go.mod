@@ -6,9 +6,9 @@ require (
 	github.com/charmbracelet/huh v0.6.0
 	github.com/charmbracelet/huh/spinner v0.0.0-20241028115900-20a4d21717a8
 	github.com/charmbracelet/lipgloss v0.13.1
-	github.com/elliotchance/orderedmap v1.6.0
 	github.com/elliotchance/orderedmap/v2 v2.4.0
 	github.com/go-git/go-git/v5 v5.12.0
+	github.com/pkg/errors v0.9.1
 )
 
 require (
