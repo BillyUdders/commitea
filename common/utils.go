@@ -1,6 +1,7 @@
 package common
 
 import (
+	"fmt"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"log"
@@ -24,6 +25,6 @@ func GetGitObjects() (*git.Repository, *git.Worktree, object.CommitIter) {
 }
 
 func HandleError(err error) {
-	ErrorText.Render("Error: " + err.Error())
+	fmt.Println(ErrorText.Render("Error: " + err.Error()))
 	os.Exit(1)
 }

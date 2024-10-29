@@ -5,23 +5,23 @@ import (
 	"commitea/common"
 	"fmt"
 	"github.com/pkg/errors"
+	"maps"
 	"os"
+	"slices"
 )
 
 func main() {
-	allowedVerbs := map[string]bool{
+	verbs := map[string]bool{
 		"commit": true,
 		"sync":   true,
 		"log":    true,
 	}
 	if len(os.Args) < 2 {
-		common.HandleError(errors.New("No command provided. Use one of: commit, sync, ls"))
-		os.Exit(1)
+		common.HandleError(inputError("No command provided", verbs))
 	}
 	command := os.Args[1]
-	if _, ok := allowedVerbs[command]; !ok {
-		common.HandleError(errors.New(fmt.Sprintf("Invalid command '%s'. Use one of: commit, sync, log\n", command)))
-		os.Exit(1)
+	if _, ok := verbs[command]; !ok {
+		common.HandleError(inputError("Unknown command: "+command, verbs))
 	}
 
 	switch command {
@@ -32,4 +32,8 @@ func main() {
 	case "sync":
 		fmt.Println("Executing 'sync' command...")
 	}
+}
+
+func inputError(command string, m map[string]bool) error {
+	return errors.New(fmt.Sprintf("%s. Use one of: %s \n", command, slices.Collect(maps.Keys(m))))
 }
