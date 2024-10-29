@@ -25,7 +25,10 @@ func (c CommitDetails) commitMessage() string {
 
 func RunCommitForm() {
 	repo, workTree, _ := common.GetGitObjects()
-	showGitStats(workTree, repo)
+	err := showGitStats(workTree, repo)
+	if err != nil {
+		common.HandleError(err)
+	}
 
 	c := CommitDetails{
 		shouldStageAll: true,
@@ -58,7 +61,7 @@ func RunCommitForm() {
 				Value(&c.shouldPush),
 		),
 	).WithTheme(common.Base16)
-	err := form.Run()
+	err = form.Run()
 	if err != nil {
 		common.HandleError(err)
 	}
@@ -72,18 +75,18 @@ func RunCommitForm() {
 	}
 }
 
-func showGitStats(w *git.Worktree, r *git.Repository) {
+func showGitStats(w *git.Worktree, r *git.Repository) error {
 	head, err := r.Head()
 	if err != nil {
-		common.HandleError(err)
+		return err
 	}
 	commit, err := r.CommitObject(head.Hash())
 	if err != nil {
-		common.HandleError(err)
+		return err
 	}
 	status, err := w.Status()
 	if err != nil {
-		common.HandleError(err)
+		return err
 	}
 	infoRows := [][]string{
 		{"Branch name", head.Name().Short()},
@@ -97,6 +100,8 @@ func showGitStats(w *git.Worktree, r *git.Repository) {
 		BorderStyle(common.SuccessText).
 		Rows(infoRows...)
 	fmt.Println(infoTable.Render())
+
+	return nil
 }
 
 func doGitActions(w *git.Worktree, repo *git.Repository, c CommitDetails) (string, error) {

@@ -17,7 +17,11 @@ func GetGitObjects() (*git.Repository, *git.Worktree, object.CommitIter) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	commits, err := repo.CommitObjects()
+	ref, err := repo.Head()
+	if err != nil {
+		log.Fatal(err)
+	}
+	commits, err := repo.Log(&git.LogOptions{From: ref.Hash()})
 	if err != nil {
 		log.Fatal(err)
 	}
