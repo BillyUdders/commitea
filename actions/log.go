@@ -28,24 +28,34 @@ func RunLog() {
 }
 
 func prettyPrintCommit(c *object.Commit) {
-	a := common.InfoText.Render("\uEAFC Commit: ") +
-		c.Hash.String()[0:6] +
-		common.InfoText.Render(" Author: ") +
-		c.Author.Name +
-		common.InfoText.Render(" Date: ") +
-		formatTime(c.Author.When)
-
-	fmt.Println(a)
-
 	idx := strings.Index(c.Message, ":")
+	var msg string
 	if idx == -1 {
-		fmt.Println(common.SuccessText.PaddingLeft(3).Render(c.Message))
+		msg = common.SuccessText.Render(c.Message)
 	} else {
-		fmt.Println(common.SuccessText.PaddingLeft(3).Render(c.Message[:idx]) + c.Message[idx+1:])
+		msg = fmt.Sprintf(common.SuccessText.Render(c.Message[:idx]) + c.Message[idx+1:])
 	}
-	fmt.Println()
+
+	fmt.Println(
+		common.InfoText.Foreground(common.Purple).Underline(true).Render(fmt.Sprintf("\uEAFC %s", c.Hash.String()[0:6])),
+		"-",
+		msg,
+		common.InfoText.Foreground(common.Gray).Render(fmt.Sprintf("(%s)", formatTime(c.Author.When))),
+		common.InfoText.Foreground(common.Orange).Render(fmt.Sprintf("[%s]", c.Author.Name)),
+	)
 }
 
 func formatTime(t time.Time) string {
-	return t.Format("Mon Jan 2 15:04:05 2006 -0700")
+	duration := time.Since(t)
+	hours := int(duration.Hours())
+	minutes := int(duration.Minutes()) % 60
+	seconds := int(duration.Seconds()) % 60
+
+	if hours > 0 {
+		return fmt.Sprintf("%d hours", hours)
+	} else if minutes > 0 {
+		return fmt.Sprintf("%d minutes and %d seconds ago", minutes, seconds)
+	} else {
+		return fmt.Sprintf("%d seconds ago", seconds)
+	}
 }
