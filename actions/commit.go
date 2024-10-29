@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss/table"
 	"github.com/elliotchance/orderedmap/v2"
 	"github.com/go-git/go-git/v5"
+	"time"
 )
 
 type CommitDetails struct {
@@ -105,11 +106,13 @@ func doGitActions(w *git.Worktree, repo *git.Repository, c CommitDetails) (strin
 
 	actions := orderedmap.NewOrderedMap[string, func()]()
 	if c.shouldStageAll {
+		time.Sleep(200 * time.Millisecond)
 		actions.Set("Staging All", func() {
 			err = w.AddGlob(".")
 		})
 	}
 	actions.Set("Commiting", func() {
+		time.Sleep(200 * time.Millisecond)
 		_, err = w.Commit(msg, &git.CommitOptions{})
 	})
 	if c.shouldPush {
