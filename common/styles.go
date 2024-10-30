@@ -32,7 +32,7 @@ var (
 			Bold(true).
 			Foreground(Red)
 
-	LogText1 = InfoText.Foreground(Purple)
+	LogText1 = InfoText.Foreground(Cyan)
 	LogText2 = InfoText.Foreground(Gray)
-	LogText3 = InfoText.Foreground(Cyan)
+	LogText3 = InfoText.Foreground(Purple)
 )

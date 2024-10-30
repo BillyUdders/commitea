@@ -14,8 +14,9 @@ func RunLog() {
 	actor := common.NewGitActor("")
 
 	logCount := 0
+	maxLogCount := 15
 	err := actor.Commits.ForEach(func(c *object.Commit) error {
-		if logCount >= 15 {
+		if logCount >= maxLogCount {
 			return nil
 		}
 		prettyPrintCommit(c)
@@ -33,10 +34,10 @@ func prettyPrintCommit(c *object.Commit) {
 	if idx == -1 {
 		msg = common.SuccessText.Render(c.Message)
 	} else {
-		msg = fmt.Sprintf(common.SuccessText.Render(c.Message[:idx]) + c.Message[idx:])
+		msg = fmt.Sprintf(common.SuccessText.Underline(true).Render(c.Message[:idx]) + c.Message[idx:])
 	}
 	fmt.Println(
-		common.LogText1.Underline(true).Render(c.Hash.String()[0:6]),
+		common.LogText1.Render(c.Hash.String()[0:6]),
 		"-",
 		msg,
 		common.LogText2.Render(fmt.Sprintf("(%s)", formatTime(c.Author.When))),
