@@ -13,8 +13,9 @@ import (
 func main() {
 	verbs := map[string]bool{
 		"commit": true,
-		"sync":   true,
 		"log":    true,
+		"status": true,
+		"sync":   true,
 	}
 	if len(os.Args) < 2 {
 		common.HandleError(inputError("No command provided", verbs))
@@ -29,6 +30,8 @@ func main() {
 		actions.RunCommitForm()
 	case "log":
 		actions.RunLog()
+	case "status":
+		actions.RunStatus()
 	case "sync":
 		fmt.Println("Executing 'sync' command...")
 	}

@@ -10,7 +10,7 @@ import (
 	"github.com/elliotchance/orderedmap/v2"
 )
 
-type CommitDetails struct {
+type commitDetails struct {
 	commitType     string
 	subject        string
 	description    string
@@ -18,7 +18,7 @@ type CommitDetails struct {
 	shouldPush     bool
 }
 
-func (c CommitDetails) commitMessage() string {
+func (c commitDetails) commitMessage() string {
 	return fmt.Sprintf("%s(%s): %s", c.commitType, c.subject, c.description)
 }
 
@@ -37,7 +37,7 @@ func RunCommitForm() {
 		Rows(stats...)
 	fmt.Println(infoTable.Render())
 
-	c := CommitDetails{
+	c := commitDetails{
 		shouldStageAll: true,
 		shouldPush:     true,
 	}
@@ -82,7 +82,7 @@ func RunCommitForm() {
 	}
 }
 
-func doCommit(actor *common.GitActor, c CommitDetails) (string, error) {
+func doCommit(actor *common.GitActor, c commitDetails) (string, error) {
 	actor.CommitMsg = c.commitMessage()
 
 	actions := orderedmap.NewOrderedMap[string, func()]()
