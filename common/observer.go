@@ -62,7 +62,8 @@ func (g *GitObserver) Status(maxCommits ...int) (GitStatus, error) {
 		return GitStatus{}, err
 	}
 	for filePath, fileStatus := range status {
-		result.Files = append(result.Files, fmt.Sprintf("%s: %s", filePath, parseStatusCode(fileStatus.Worktree)))
+		sc := parseStatus(fileStatus.Worktree)
+		result.Files = append(result.Files, fmt.Sprintf("%s: %s", filePath, sc))
 	}
 	refIter, _ := g.Repo.Branches()
 	err = refIter.ForEach(func(r *plumbing.Reference) error {
@@ -89,7 +90,7 @@ func (g *GitObserver) Status(maxCommits ...int) (GitStatus, error) {
 	return result, err
 }
 
-func parseStatusCode(statusCode git.StatusCode) string {
+func parseStatus(statusCode git.StatusCode) string {
 	switch statusCode {
 	case git.Unmodified:
 		return "Unmodified"
