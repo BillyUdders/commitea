@@ -21,7 +21,7 @@ func (c commitDetails) commitMessage() string {
 }
 
 func RunCommitForm() {
-	RunStatus()
+	RunStatus(5)
 
 	c := commitDetails{
 		shouldStageAll: true,

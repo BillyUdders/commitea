@@ -43,32 +43,11 @@ type GitObserver struct {
 	Commits  object.CommitIter
 }
 
-func (g *GitObserver) RepoStats() ([][]string, error) {
-	head, err := g.Repo.Head()
-	if err != nil {
-		return nil, err
-	}
-	commit, err := g.Repo.CommitObject(head.Hash())
-	if err != nil {
-		return nil, err
-	}
-	status, err := g.Worktree.Status()
-	if err != nil {
-		return nil, err
-	}
-	infoRows := [][]string{
-		{"Branch name", head.Name().Short()},
-		{"Latest commit", commit.String()},
-		{"Dirty files", status.String()},
-	}
-	return infoRows, nil
-}
-
 type GitStatus struct {
 	Files, Branches, Commits []string
 }
 
-func (g *GitObserver) Status() (GitStatus, error) {
+func (g *GitObserver) Status(maxCommits ...int) (GitStatus, error) {
 	result := GitStatus{
 		Files:    make([]string, 0),
 		Branches: make([]string, 0),
@@ -101,10 +80,13 @@ func (g *GitObserver) Status() (GitStatus, error) {
 	}
 
 	commitCount := 0
-	maxCommits := 5
+	if maxCommits == nil || len(maxCommits) == 0 {
+		maxCommits[0] = 10
+	}
+
 	commitIter, _ := g.Repo.Log(&git.LogOptions{From: ref.Hash()})
 	err = commitIter.ForEach(func(c *object.Commit) error {
-		if commitCount >= maxCommits {
+		if commitCount >= maxCommits[0] {
 			return nil
 		}
 		result.Commits = append(result.Commits, prettyPrintCommit(c))
