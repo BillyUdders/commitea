@@ -8,6 +8,8 @@ import (
 	"github.com/elliotchance/orderedmap/v2"
 )
 
+var symbol = "\\eafc"
+
 type commitDetails struct {
 	commitType     string
 	subject        string
@@ -21,7 +23,6 @@ func (c commitDetails) commitMessage() string {
 }
 
 func RunCommitForm() {
-	symbol := "\\eafc"
 	status := RunStatus(5)
 	if len(status.Files) == 0 {
 		fmt.Println(common.WarningText.Render(symbol + " No files to commit."))
