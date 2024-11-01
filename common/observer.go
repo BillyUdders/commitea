@@ -120,7 +120,7 @@ func prettyPrintCommit(c *object.Commit) string {
 	}
 	return fmt.Sprintf(
 		"%s %s %s %s %s",
-		LogText1.Render(c.Hash.String()[0:6]),
+		LogText1.Render(c.Hash.String()[0:7]),
 		"-",
 		msg,
 		LogText2.Render(fmt.Sprintf("(%s)", formatTime(c.Author.When))),
