@@ -23,7 +23,7 @@ func (c commitDetails) commitMessage() string {
 func RunCommitForm() {
 	status := RunStatus(5)
 	if len(status.Files) == 0 {
-		fmt.Println(common.WarningText.Render("\ueafc No files have been changed. Exiting..."))
+		fmt.Println(common.WarningText.Render("\ueafc No files to commit."))
 		return
 	}
 
