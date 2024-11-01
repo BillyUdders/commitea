@@ -16,7 +16,7 @@ func RunStatus(numOfCommits int) {
 			"Files", list.New(status.Files),
 			"Branches", list.New(status.Branches),
 			"Commits", list.New(status.Commits),
-		).ItemStyle(common.SuccessText),
+		).ItemStyle(common.InfoText),
 	)
 	println()
 }

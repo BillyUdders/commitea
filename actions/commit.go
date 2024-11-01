@@ -30,7 +30,7 @@ func RunCommitForm() {
 	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().
-				Title("Choose commit type:").
+				Title(common.InfoText.Render("Choose commit type:")).
 				Options(
 					huh.NewOption("Feature", "feature"),
 					huh.NewOption("Hotfix", "hotfix"),
@@ -40,17 +40,17 @@ func RunCommitForm() {
 		),
 		huh.NewGroup(
 			huh.NewInput().
-				Title("Enter commit subject").
+				Title(common.InfoText.Render("Enter commit subject")).
 				Value(&c.subject),
 			huh.NewInput().
-				Title("Write a description (Max 200 characters)").
+				Title(common.InfoText.Render("Write a description (Max 200 characters)")).
 				CharLimit(200).
 				Value(&c.description),
 			huh.NewConfirm().
-				Title("Stage all?").
+				Title(common.InfoText.Render("Stage all?")).
 				Value(&c.shouldStageAll),
 			huh.NewConfirm().
-				Title("Push?").
+				Title(common.InfoText.Render("Push?")).
 				Value(&c.shouldPush),
 		),
 	).WithTheme(common.Base16)

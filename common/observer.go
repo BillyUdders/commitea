@@ -14,27 +14,23 @@ func NewGitObserver(repoPath string) *GitObserver {
 	if repoPath == "" {
 		repoPath = "."
 	}
-	repo, err := git.PlainOpen(repoPath)
+	r, err := git.PlainOpen(repoPath)
 	if err != nil {
 		log.Fatal(err)
 	}
-	w, err := repo.Worktree()
+	w, err := r.Worktree()
 	if err != nil {
 		log.Fatal(err)
 	}
-	ref, err := repo.Head()
+	ref, err := r.Head()
 	if err != nil {
 		log.Fatal(err)
 	}
-	commits, err := repo.Log(&git.LogOptions{From: ref.Hash()})
+	c, err := r.Log(&git.LogOptions{From: ref.Hash()})
 	if err != nil {
 		log.Fatal(err)
 	}
-	return &GitObserver{
-		Repo:     repo,
-		Worktree: w,
-		Commits:  commits,
-	}
+	return &GitObserver{Repo: r, Worktree: w, Commits: c}
 }
 
 type GitObserver struct {
