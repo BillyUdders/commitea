@@ -63,7 +63,7 @@ func RunCommitForm() {
 	if err != nil {
 		common.HandleError(err)
 	} else {
-		fmt.Println(common.InfoText.Render("\ueafc message: ") + msg)
+		fmt.Println(common.InfoText.Foreground(common.Purple).Render("\ueafc message: ") + msg)
 		fmt.Println(common.SuccessText.Render("\ueafc Done!"))
 	}
 }
