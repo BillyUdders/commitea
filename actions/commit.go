@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/huh/spinner"
-	"github.com/charmbracelet/lipgloss"
-	"github.com/charmbracelet/lipgloss/table"
 	"github.com/elliotchance/orderedmap/v2"
 )
 
@@ -23,19 +21,7 @@ func (c commitDetails) commitMessage() string {
 }
 
 func RunCommitForm() {
-	actor := common.NewGitActor("")
-
-	stats, err := actor.RepoStats()
-	if err != nil {
-		common.HandleError(err)
-	}
-	infoTable := table.New().
-		Border(lipgloss.RoundedBorder()).
-		BorderColumn(true).
-		BorderRow(true).
-		BorderStyle(common.SuccessText).
-		Rows(stats...)
-	fmt.Println(infoTable.Render())
+	RunStatus()
 
 	c := commitDetails{
 		shouldStageAll: true,
@@ -68,11 +54,12 @@ func RunCommitForm() {
 				Value(&c.shouldPush),
 		),
 	).WithTheme(common.Base16)
-	err = form.Run()
+	err := form.Run()
 	if err != nil {
 		common.HandleError(err)
 	}
 
+	actor := common.NewGitActor("")
 	msg, err := doCommit(actor, c)
 	if err != nil {
 		common.HandleError(err)

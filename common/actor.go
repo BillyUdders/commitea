@@ -26,47 +26,26 @@ func NewGitActor(repoPath string) *GitActor {
 	if err != nil {
 		log.Fatal(err)
 	}
-	return &GitActor{WorkTree: w, Repo: repo, Commits: commits}
+	return &GitActor{Worktree: w, Repo: repo, Commits: commits}
 }
 
 type GitActor struct {
-	WorkTree  *git.Worktree
+	Worktree  *git.Worktree
 	Repo      *git.Repository
 	Commits   object.CommitIter
 	CommitMsg string
 	Err       error
 }
 
-func (g *GitActor) RepoStats() ([][]string, error) {
-	head, err := g.Repo.Head()
-	if err != nil {
-		return nil, err
-	}
-	commit, err := g.Repo.CommitObject(head.Hash())
-	if err != nil {
-		return nil, err
-	}
-	status, err := g.WorkTree.Status()
-	if err != nil {
-		return nil, err
-	}
-	infoRows := [][]string{
-		{"Branch name", head.Name().Short()},
-		{"Latest commit", commit.String()},
-		{"Dirty files", status.String()},
-	}
-	return infoRows, nil
-}
-
 func (g *GitActor) StageAll() {
 	if g.Err == nil {
-		g.Err = g.WorkTree.AddGlob(".")
+		g.Err = g.Worktree.AddGlob(".")
 	}
 }
 
 func (g *GitActor) Commit() {
 	if g.Err == nil {
-		_, err := g.WorkTree.Commit(g.CommitMsg, &git.CommitOptions{})
+		_, err := g.Worktree.Commit(g.CommitMsg, &git.CommitOptions{})
 		g.Err = err
 	}
 }

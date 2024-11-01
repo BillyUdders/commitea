@@ -3,22 +3,19 @@ package actions
 import (
 	"commitea/common"
 	"fmt"
-	"github.com/charmbracelet/lipgloss"
-	"github.com/charmbracelet/lipgloss/table"
+	"github.com/charmbracelet/lipgloss/list"
 )
 
 func RunStatus() {
-	actor := common.NewGitActor("")
-
-	stats, err := actor.RepoStats()
+	status, err := common.NewGitObserver("").Status()
 	if err != nil {
 		common.HandleError(err)
 	}
-	infoTable := table.New().
-		Border(lipgloss.RoundedBorder()).
-		BorderColumn(true).
-		BorderRow(true).
-		BorderStyle(common.SuccessText).
-		Rows(stats...)
-	fmt.Println(infoTable.Render())
+	fmt.Print(
+		list.New(
+			"Files", list.New(status.Files),
+			"Branches", list.New(status.Branches),
+			"Commits", list.New(status.Commits),
+		).ItemStyle(common.SuccessText),
+	)
 }
