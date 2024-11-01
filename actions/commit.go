@@ -27,10 +27,11 @@ func RunCommitForm() {
 		shouldStageAll: true,
 		shouldPush:     true,
 	}
+	infoText := common.InfoText
 	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().
-				Title(common.InfoText.Render("Choose commit type:")).
+				Title(infoText.Render("Choose commit type:")).
 				Options(
 					huh.NewOption("Feature", "feature"),
 					huh.NewOption("Hotfix", "hotfix"),
@@ -40,17 +41,17 @@ func RunCommitForm() {
 		),
 		huh.NewGroup(
 			huh.NewInput().
-				Title(common.InfoText.Render("Enter commit subject")).
+				Title(infoText.Render("Enter commit subject")).
 				Value(&c.subject),
 			huh.NewInput().
-				Title(common.InfoText.Render("Write a description (Max 200 characters)")).
+				Title(infoText.Render("Write a description (Max 200 characters)")).
 				CharLimit(200).
 				Value(&c.description),
 			huh.NewConfirm().
-				Title(common.InfoText.Render("Stage all?")).
+				Title(infoText.Render("Stage all?")).
 				Value(&c.shouldStageAll),
 			huh.NewConfirm().
-				Title(common.InfoText.Render("Push?")).
+				Title(infoText.Render("Push?")).
 				Value(&c.shouldPush),
 		),
 	).WithTheme(common.Base16)
@@ -63,8 +64,9 @@ func RunCommitForm() {
 	if err != nil {
 		common.HandleError(err)
 	} else {
-		fmt.Println(common.InfoText.Foreground(common.Purple).Render("\ueafc message: ") + msg)
-		fmt.Println(common.SuccessText.Render("\ueafc Done!"))
+		fmt.Println(
+			common.SuccessText.Render("\ueafc Done!"), infoText.Render("Commit message: ")+msg,
+		)
 	}
 }
 
