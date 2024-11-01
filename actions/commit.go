@@ -21,7 +21,11 @@ func (c commitDetails) commitMessage() string {
 }
 
 func RunCommitForm() {
-	RunStatus(5)
+	status := RunStatus(5)
+	if len(status.Files) == 0 {
+		fmt.Println(common.WarningText.Render("\ueafc No files have been changed. Exiting..."))
+		return
+	}
 
 	c := commitDetails{
 		shouldStageAll: true,
@@ -63,7 +67,7 @@ func RunCommitForm() {
 	if err != nil {
 		common.HandleError(err)
 	} else {
-		fmt.Println(common.InfoText.Render("\ueafc message: ") + msg)
+		fmt.Println(common.InfoText.Render("\ueafc Commit message: ") + msg)
 		fmt.Println(common.SuccessText.Render("\ueafc Done!"))
 	}
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/charmbracelet/lipgloss/list"
 )
 
-func RunStatus(numOfCommits int) {
+func RunStatus(numOfCommits int) common.GitStatus {
 	status, err := common.NewGitObserver("").Status(numOfCommits)
 	if err != nil {
 		common.HandleError(err)
@@ -19,4 +19,5 @@ func RunStatus(numOfCommits int) {
 		).ItemStyle(common.InfoText),
 	)
 	println()
+	return status
 }

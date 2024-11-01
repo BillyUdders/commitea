@@ -32,6 +32,10 @@ var (
 			Bold(true).
 			Foreground(Red)
 
+	WarningText = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(Orange)
+
 	LogText1 = InfoText.Foreground(Cyan)
 	LogText2 = InfoText.Foreground(Gray)
 	LogText3 = InfoText.Foreground(Purple)
