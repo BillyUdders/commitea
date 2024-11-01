@@ -21,9 +21,10 @@ func (c commitDetails) commitMessage() string {
 }
 
 func RunCommitForm() {
+	symbol := "\\eafc"
 	status := RunStatus(5)
 	if len(status.Files) == 0 {
-		fmt.Println(common.WarningText.Render("\ueafc No files to commit."))
+		fmt.Println(common.WarningText.Render(symbol + " No files to commit."))
 		return
 	}
 
@@ -67,8 +68,8 @@ func RunCommitForm() {
 	if err != nil {
 		common.HandleError(err)
 	} else {
-		fmt.Println(common.InfoText.Render("\ueafc Commit message: ") + msg)
-		fmt.Println(common.SuccessText.Render("\ueafc Done!"))
+		fmt.Println(common.InfoText.Render(symbol+" Commit message: ") + msg)
+		fmt.Println(common.SuccessText.Render(symbol + " Done!"))
 	}
 }
 
