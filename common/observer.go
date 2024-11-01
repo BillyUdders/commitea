@@ -53,37 +53,30 @@ func (g *GitObserver) Status(maxCommits ...int) (GitStatus, error) {
 		Branches: make([]string, 0),
 		Commits:  make([]string, 0),
 	}
-
 	ref, err := g.Repo.Head()
 	if err != nil {
 		return GitStatus{}, err
 	}
-
 	status, err := g.Worktree.Status()
 	if err != nil {
 		return GitStatus{}, err
 	}
-
 	for filePath, fileStatus := range status {
 		result.Files = append(result.Files, fmt.Sprintf("%s: %s", filePath, parseStatusCode(fileStatus.Worktree)))
 	}
-
 	refIter, _ := g.Repo.Branches()
 	err = refIter.ForEach(func(r *plumbing.Reference) error {
 		result.Branches = append(result.Branches, r.Name().Short())
 		return nil
 	})
-
 	_, err = g.Repo.CommitObject(ref.Hash())
 	if err != nil {
 		return GitStatus{}, err
 	}
-
 	commitCount := 0
 	if maxCommits == nil || len(maxCommits) == 0 {
 		maxCommits[0] = 10
 	}
-
 	commitIter, _ := g.Repo.Log(&git.LogOptions{From: ref.Hash()})
 	err = commitIter.ForEach(func(c *object.Commit) error {
 		if commitCount >= maxCommits[0] {
@@ -93,7 +86,6 @@ func (g *GitObserver) Status(maxCommits ...int) (GitStatus, error) {
 		commitCount++
 		return nil
 	})
-
 	return result, err
 }
 
@@ -141,7 +133,6 @@ func formatTime(t time.Time) string {
 	hours := int(duration.Hours())
 	minutes := int(duration.Minutes()) % 60
 	seconds := int(duration.Seconds()) % 60
-
 	if hours > 0 {
 		return fmt.Sprintf("%d hours", hours)
 	} else if minutes > 0 {
