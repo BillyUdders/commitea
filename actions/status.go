@@ -11,11 +11,12 @@ func RunStatus(numOfCommits int) {
 	if err != nil {
 		common.HandleError(err)
 	}
-	fmt.Print(
+	fmt.Println(
 		list.New(
 			"Files", list.New(status.Files),
 			"Branches", list.New(status.Branches),
 			"Commits", list.New(status.Commits),
 		).ItemStyle(common.SuccessText),
 	)
+	println()
 }

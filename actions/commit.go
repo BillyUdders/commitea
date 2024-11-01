@@ -59,8 +59,7 @@ func RunCommitForm() {
 		common.HandleError(err)
 	}
 
-	actor := common.NewGitActor("")
-	msg, err := doCommit(actor, c)
+	msg, err := doCommit(c)
 	if err != nil {
 		common.HandleError(err)
 	} else {
@@ -69,7 +68,8 @@ func RunCommitForm() {
 	}
 }
 
-func doCommit(actor *common.GitActor, c commitDetails) (string, error) {
+func doCommit(c commitDetails) (string, error) {
+	actor := common.NewGitActor("")
 	actor.CommitMsg = c.commitMessage()
 
 	actions := orderedmap.NewOrderedMap[string, func()]()
