@@ -8,7 +8,7 @@ import (
 	"github.com/elliotchance/orderedmap/v2"
 )
 
-var symbol = "\\eafc"
+var symbol = "\\ueafc"
 
 type commitDetails struct {
 	commitType     string
