@@ -88,22 +88,22 @@ func (g *GitObserver) Status(maxCommits ...int) (GitStatus, error) {
 
 func parseStatus(statusCode git.StatusCode) string {
 	switch statusCode {
-	case git.Unmodified:
-		return "Unmodified"
-	case git.Untracked:
-		return "Untracked"
 	case git.Modified:
-		return "Modified"
+		return InfoText.Render("Modified")
 	case git.Added:
-		return "Staged for addition (Added)"
-	case git.Deleted:
-		return "Deleted"
-	case git.Renamed:
-		return "Renamed"
+		return InfoText.Render("Staged for addition (Added)")
 	case git.Copied:
-		return "Copied"
+		return InfoText.Render("Copied")
+	case git.Unmodified:
+		return WarningText.Render("Unmodified")
+	case git.Renamed:
+		return WarningText.Render("Renamed")
+	case git.Deleted:
+		return ErrorText.Render("Deleted")
+	case git.Untracked:
+		return ErrorText.Render("Untracked")
 	default:
-		return "Unknown status"
+		return ErrorText.Render("Unknown status")
 	}
 }
 
