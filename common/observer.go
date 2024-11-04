@@ -61,6 +61,8 @@ func (g *GitObserver) Status(maxCommits ...int) (GitStatus, error) {
 		sc := parseStatus(fileStatus.Worktree)
 		result.Files = append(result.Files, fmt.Sprintf("%s: %s", filePath, sc))
 	}
+
+	// Hi Acheron
 	refIter, _ := g.Repo.Branches()
 	err = refIter.ForEach(func(r *plumbing.Reference) error {
 		result.Branches = append(result.Branches, r.Name().Short())
@@ -89,6 +91,7 @@ func (g *GitObserver) Status(maxCommits ...int) (GitStatus, error) {
 func parseStatus(statusCode git.StatusCode) string {
 	switch statusCode {
 	case git.Modified:
+
 		return InfoText.Render("Modified")
 	case git.Added:
 		return InfoText.Render("Staged for addition (Added)")
