@@ -1,8 +1,8 @@
 package main
 
 import (
-	"commitea/internal/app/commitea/actions"
-	"commitea/internal/app/commitea/common"
+	"commitea/internal/pkg/commitea/actions"
+	"commitea/internal/pkg/commitea/common"
 	"errors"
 	"fmt"
 	"maps"

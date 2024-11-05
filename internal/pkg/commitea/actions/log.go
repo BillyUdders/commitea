@@ -1,7 +1,7 @@
 package actions
 
 import (
-	"commitea/internal/app/commitea/common"
+	"commitea/internal/pkg/commitea/common"
 	"fmt"
 	"github.com/charmbracelet/lipgloss/list"
 )
