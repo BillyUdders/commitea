@@ -1,7 +1,7 @@
 # Commitea
 
-**Commitea** is a Go-based tool designed for managing and automating tasks related to Git repositories. Built to
-streamline workflow and improve productivity, this tool is ideal for software engineers who frequently work with Git.
+**Commitea** A git tool that combines all my best practice stuff into simple commands and a full TUI mode for power
+browsing.
 
 ### Development
 
