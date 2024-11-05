@@ -7,7 +7,11 @@ import (
 )
 
 func RunStatus(numOfCommits int) common.GitStatus {
-	status, err := common.NewGitObserver("").Status(numOfCommits)
+	obs, err := common.NewGitObserver("")
+	if err != nil {
+		common.HandleError(err)
+	}
+	status, err := obs.Status(numOfCommits)
 	if err != nil {
 		common.HandleError(err)
 	}

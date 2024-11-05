@@ -7,7 +7,11 @@ import (
 )
 
 func RunLog() {
-	status, err := common.NewGitObserver("").Status(25)
+	obs, err := common.NewGitObserver("")
+	if err != nil {
+		common.HandleError(err)
+	}
+	status, err := obs.Status(25)
 	if err != nil {
 		common.HandleError(err)
 	}

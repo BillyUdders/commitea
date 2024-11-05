@@ -5,32 +5,31 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
-	"log"
 	"strings"
 	"time"
 )
 
-func NewGitObserver(repoPath string) *GitObserver {
+func NewGitObserver(repoPath string) (*GitObserver, error) {
 	if repoPath == "" {
 		repoPath = "."
 	}
 	r, err := git.PlainOpen(repoPath)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	w, err := r.Worktree()
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	ref, err := r.Head()
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	c, err := r.Log(&git.LogOptions{From: ref.Hash()})
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return &GitObserver{Repo: r, Worktree: w, Commits: c}
+	return &GitObserver{Repo: r, Worktree: w, Commits: c}, nil
 }
 
 type GitObserver struct {

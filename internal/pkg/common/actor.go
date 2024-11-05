@@ -3,30 +3,29 @@ package common
 import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
-	"log"
 )
 
-func NewGitActor(repoPath string) *GitActor {
+func NewGitActor(repoPath string) (*GitActor, error) {
 	if repoPath == "" {
 		repoPath = "."
 	}
 	repo, err := git.PlainOpen(repoPath)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	w, err := repo.Worktree()
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	ref, err := repo.Head()
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	commits, err := repo.Log(&git.LogOptions{From: ref.Hash()})
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return &GitActor{Worktree: w, Repo: repo, Commits: commits}
+	return &GitActor{Worktree: w, Repo: repo, Commits: commits}, nil
 }
 
 type GitActor struct {
