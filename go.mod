@@ -8,7 +8,6 @@ require (
 	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/elliotchance/orderedmap/v2 v2.4.0
 	github.com/go-git/go-git/v5 v5.12.0
-	github.com/pkg/errors v0.9.1
 )
 
 require (
