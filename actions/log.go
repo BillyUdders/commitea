@@ -11,5 +11,5 @@ func RunLog() {
 	if err != nil {
 		common.HandleError(err)
 	}
-	fmt.Println(list.New("Commits", status.Commits).ItemStyle(common.SuccessText))
+	fmt.Println(list.New("Commits", status.Commits).ItemStyle(common.InfoText))
 }
