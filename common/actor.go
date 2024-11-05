@@ -4,7 +4,6 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"log"
-	"time"
 )
 
 func NewGitActor(repoPath string) *GitActor {
@@ -41,7 +40,6 @@ type GitActor struct {
 func (g *GitActor) StageAll() {
 	if g.Err == nil {
 		g.Err = g.Worktree.AddGlob(".")
-		time.Sleep(500 * time.Millisecond)
 	}
 }
 
@@ -49,13 +47,11 @@ func (g *GitActor) Commit() {
 	if g.Err == nil {
 		_, err := g.Worktree.Commit(g.CommitMsg, &git.CommitOptions{})
 		g.Err = err
-		time.Sleep(500 * time.Millisecond)
 	}
 }
 
 func (g *GitActor) Push() {
 	if g.Err == nil {
 		g.Err = g.Repo.Push(&git.PushOptions{})
-		time.Sleep(500 * time.Millisecond)
 	}
 }
