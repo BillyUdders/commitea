@@ -61,7 +61,7 @@ func (g *GitObserver) Status(maxCommits ...int) (GitStatus, error) {
 		result.Files = append(result.Files, fmt.Sprintf("%s: %s", filePath, sc))
 	}
 
-	// Hi Acheron
+	// Hi acheron
 	refIter, _ := g.Repo.Branches()
 	err = refIter.ForEach(func(r *plumbing.Reference) error {
 		result.Branches = append(result.Branches, r.Name().Short())
