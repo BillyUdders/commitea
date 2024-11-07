@@ -15,6 +15,7 @@ func main() {
 		"commit": true,
 		"log":    true,
 		"status": true,
+		"watch":  true,
 		"sync":   true,
 	}
 	if len(os.Args) < 2 {
@@ -32,6 +33,8 @@ func main() {
 		actions.RunLog()
 	case "status":
 		actions.RunStatus(20)
+	case "watch":
+		actions.Watch()
 	case "sync":
 		fmt.Println("Executing 'sync' command...")
 	}
