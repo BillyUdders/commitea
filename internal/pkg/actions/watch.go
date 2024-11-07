@@ -4,9 +4,11 @@ import (
 	"commitea/internal/pkg/common"
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss/list"
 	"net"
 	"os"
 	"runtime"
+	"strings"
 )
 
 // TODO
@@ -43,12 +45,28 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	info := m.socketInfo
-	s := common.SuccessText.Render("Messages:") + "\n"
-	for _, msg := range m.messages {
-		s += common.InfoText.Render(info.network, "<>", info.address, "received:", msg) + "\n"
+	if len(m.messages) == 0 {
+		return common.SuccessText.Render("Welcome to watch!")
 	}
-	return s
+
+	path := strings.Trim(m.messages[len(m.messages)-1], " ")
+	path = strings.ReplaceAll(path, "\n", "")
+	obs, err := common.NewGitObserver(path)
+	if err != nil {
+		return common.WarningText.Render(path, " is not a Git Repository!")
+	}
+
+	status, err := obs.Status(20)
+	if err != nil {
+		common.HandleError(err)
+	}
+	s := list.New(
+		"Files", list.New(status.Files),
+		"Branches", list.New(status.Branches),
+		"Commits", list.New(status.Commits),
+	).ItemStyle(common.InfoText)
+
+	return s.String()
 }
 
 func socketListener(info socketInfo, ch chan<- tea.Msg) {

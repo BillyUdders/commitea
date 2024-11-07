@@ -6,8 +6,8 @@ import (
 	"github.com/charmbracelet/lipgloss/list"
 )
 
-func RunStatus(numOfCommits int) common.GitStatus {
-	obs, err := common.NewGitObserver("")
+func RunStatus(dirpath string, numOfCommits int) common.GitStatus {
+	obs, err := common.NewGitObserver(dirpath)
 	if err != nil {
 		common.HandleError(err)
 	}
