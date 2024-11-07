@@ -16,7 +16,8 @@ import (
 type socketMsg string
 
 type model struct {
-	messages []string
+	socketInfo socketInfo
+	messages   []string
 }
 
 func (m model) Init() tea.Cmd {
@@ -42,9 +43,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	s := "Messages:\n"
+	info := m.socketInfo
+	s := common.SuccessText.Render("Messages:") + "\n"
 	for _, msg := range m.messages {
-		s += msg + "\n"
+		s += common.InfoText.Render(info.network, "<>", info.address, "received:", msg) + "\n"
 	}
 	return s
 }
@@ -64,7 +66,6 @@ func socketListener(info socketInfo, ch chan<- tea.Msg) {
 		common.HandleError(err)
 	}
 	defer listener.Close()
-	fmt.Printf("Listening socket type %s address: %s", info.network, info.address)
 
 	for {
 		conn, err := listener.Accept()
@@ -97,7 +98,7 @@ func Watch() {
 
 	msgChannel := make(chan tea.Msg)
 	go socketListener(info, msgChannel)
-	p := tea.NewProgram(model{})
+	p := tea.NewProgram(model{socketInfo: info})
 	go func() {
 		for msg := range msgChannel {
 			p.Send(msg)
