@@ -1,21 +1,19 @@
 package actions
 
 import (
+	"commitea/internal/pkg/common"
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 	"net"
 	"os"
+	"runtime"
 )
-
-const (
-	ADDRESS = "/tmp/commitea.sock"
-)
-
-type socketMsg string
 
 // TODO
 // store the message from the directory
 // dict {dir: message}
+
+type socketMsg string
 
 type model struct {
 	messages []string
@@ -51,61 +49,63 @@ func (m model) View() string {
 	return s
 }
 
-func listenUnixSocket(ch chan<- tea.Msg) {
-	socketPath := ADDRESS
-
+func socketListener(info socketInfo, ch chan<- tea.Msg) {
 	// Remove the socket if it exists
-	if _, err := os.Stat(socketPath); err == nil {
-		os.Remove(socketPath)
+	if _, err := os.Stat(info.address); err == nil {
+		err = os.Remove(info.address)
+		if err != nil {
+			common.HandleError(err)
+		}
 	}
 
 	// Listen on the Unix socket
-	listener, err := net.Listen("unix", socketPath)
+	listener, err := net.Listen(info.network, info.address)
 	if err != nil {
-		fmt.Println("Error listening on socket:", err)
-		return
+		common.HandleError(err)
 	}
 	defer listener.Close()
-
-	fmt.Println("Listening on Unix socket:", socketPath)
+	fmt.Printf("Listening socket type %s address: %s", info.network, info.address)
 
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			fmt.Println("Error accepting connection:", err)
-			continue
+			common.HandleError(err)
 		}
-
 		go func(conn net.Conn) {
 			defer conn.Close()
 			buf := make([]byte, 1024)
 			n, err := conn.Read(buf)
 			if err != nil {
-				fmt.Println("Error reading from connection:", err)
-				return
+				common.HandleError(err)
 			}
-			ch <- socketMsg(string(buf[:n]))
+			ch <- socketMsg(buf[:n])
 		}(conn)
 	}
 }
 
-func Watch() {
+type socketInfo struct {
+	address, network string
+}
 
-	// TODO
-	// initialize the GUI
+func Watch() {
+	var info socketInfo
+	if runtime.GOOS == "windows" {
+		info = socketInfo{"127.0.0.1", "tcp"}
+	} else {
+		info = socketInfo{"/tmp/commitea.sock", "unix"}
+	}
 
 	msgChannel := make(chan tea.Msg)
-	go listenUnixSocket(msgChannel)
-
+	go socketListener(info, msgChannel)
 	p := tea.NewProgram(model{})
-
 	go func() {
 		for msg := range msgChannel {
 			p.Send(msg)
 		}
 	}()
 
-	if err := p.Start(); err != nil {
+	_, err := p.Run()
+	if err != nil {
 		fmt.Println("Error starting Bubble Tea program:", err)
 		os.Exit(1)
 	}
