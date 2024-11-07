@@ -13,7 +13,7 @@ const (
 
 type socketMsg string
 
-
+// TODO
 // store the message from the directory
 // dict {dir: message}
 
@@ -31,6 +31,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     switch msg := msg.(type) {
 
     case socketMsg:
+
+		// TODO
         // cd into dir
 
         // call commitea log, status
@@ -96,6 +98,7 @@ func listenUnixSocket(ch chan<- tea.Msg) {
 
 func Watch() {
 
+	// TODO
     // initialize the GUI
 
     msgChannel := make(chan tea.Msg)
