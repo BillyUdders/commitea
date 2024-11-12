@@ -8,7 +8,6 @@ import (
 	"net"
 	"os"
 	"runtime"
-	"strings"
 )
 
 var (
@@ -16,11 +15,15 @@ var (
 	UnixSocket    = socketInfo{address: "/tmp/commitea.sock", network: "unix"}
 )
 
+type socketInfo struct {
+	address, network string
+}
+
 type socketMsg string
 
 type model struct {
 	socketInfo socketInfo
-	messages   []string
+	msg        socketMsg
 }
 
 func (m model) Init() tea.Cmd {
@@ -30,7 +33,7 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case socketMsg:
-		m.messages = append(m.messages, string(msg))
+		m.msg = msg
 
 	case tea.KeyMsg:
 
@@ -43,12 +46,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	if len(m.messages) == 0 {
+	if msg := m.msg; msg == "" {
 		return common.SuccessText.Render("Welcome to watch!")
 	}
 
-	path := strings.Trim(m.messages[len(m.messages)-1], " ")
-	path = strings.ReplaceAll(path, "\n", "")
+	path := common.TrimAll(string(m.msg))
 	obs, err := common.NewGitObserver(path)
 	if err != nil {
 		return common.WarningText.Render(path, " is not a Git Repository!")
@@ -99,10 +101,6 @@ func socketListener(info socketInfo, ch chan<- tea.Msg) {
 	}
 }
 
-type socketInfo struct {
-	address, network string
-}
-
 func Watch() {
 	var info socketInfo
 	if runtime.GOOS == "windows" {
@@ -113,7 +111,7 @@ func Watch() {
 
 	msgChannel := make(chan tea.Msg)
 	go socketListener(info, msgChannel)
-	p := tea.NewProgram(model{info, nil})
+	p := tea.NewProgram(model{info, ""})
 	go func() {
 		for msg := range msgChannel {
 			p.Send(msg)

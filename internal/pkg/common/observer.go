@@ -112,10 +112,11 @@ func parseStatus(statusCode git.StatusCode) string {
 func prettyPrintCommit(c *object.Commit) string {
 	idx := strings.Index(c.Message, ":")
 	var msg string
+	trimmed := TrimAll(c.Message)
 	if idx == -1 {
-		msg = SuccessText.Render(c.Message)
+		msg = SuccessText.Render(trimmed)
 	} else {
-		msg = fmt.Sprintf(SuccessText.Underline(true).Render(c.Message[:idx]) + c.Message[idx:])
+		msg = fmt.Sprintf(SuccessText.Underline(true).Render(trimmed[:idx]) + trimmed[idx:])
 	}
 	return fmt.Sprintf(
 		"%s %s %s %s %s",
