@@ -11,9 +11,10 @@ import (
 	"strings"
 )
 
-// TODO
-// store the message from the directory
-// dict {dir: message}
+var (
+	WindowsSocket = socketInfo{address: "127.0.0.1", network: "tcp"}
+	UnixSocket    = socketInfo{address: "/tmp/commitea.sock", network: "unix"}
+)
 
 type socketMsg string
 
@@ -29,9 +30,6 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case socketMsg:
-		// TODO
-		// cd into dir
-		// call commitea log, status
 		m.messages = append(m.messages, string(msg))
 
 	case tea.KeyMsg:
@@ -108,14 +106,14 @@ type socketInfo struct {
 func Watch() {
 	var info socketInfo
 	if runtime.GOOS == "windows" {
-		info = socketInfo{"127.0.0.1", "tcp"}
+		info = WindowsSocket
 	} else {
-		info = socketInfo{"/tmp/commitea.sock", "unix"}
+		info = UnixSocket
 	}
 
 	msgChannel := make(chan tea.Msg)
 	go socketListener(info, msgChannel)
-	p := tea.NewProgram(model{socketInfo: info})
+	p := tea.NewProgram(model{info, nil})
 	go func() {
 		for msg := range msgChannel {
 			p.Send(msg)
