@@ -44,7 +44,6 @@ func RunCommitForm() {
 				).
 				Value(&c.commitType),
 		),
-
 		huh.NewGroup(
 			huh.NewInput().
 				Title(common.InfoText.Render("Enter commit subject")).

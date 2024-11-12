@@ -78,7 +78,6 @@ func socketListener(info socketInfo, ch chan<- tea.Msg) {
 		}
 	}
 
-	// Listen on the Unix socket
 	listener, err := net.Listen(info.network, info.address)
 	if err != nil {
 		common.HandleError(err)

@@ -43,10 +43,14 @@ type GitStatus struct {
 }
 
 func (g *GitObserver) Status(maxCommits ...int) (GitStatus, error) {
+	if maxCommits == nil || len(maxCommits) == 0 {
+		maxCommits[0] = 10
+	}
+
 	result := GitStatus{
 		Files:    make([]string, 0),
 		Branches: make([]string, 0),
-		Commits:  make([]string, 0),
+		Commits:  make([]string, maxCommits[0]),
 	}
 	ref, err := g.Repo.Head()
 	if err != nil {
@@ -61,7 +65,6 @@ func (g *GitObserver) Status(maxCommits ...int) (GitStatus, error) {
 		result.Files = append(result.Files, fmt.Sprintf("%s: %s", filePath, sc))
 	}
 
-	// Hi acheron
 	refIter, _ := g.Repo.Branches()
 	err = refIter.ForEach(func(r *plumbing.Reference) error {
 		result.Branches = append(result.Branches, r.Name().Short())
@@ -72,25 +75,22 @@ func (g *GitObserver) Status(maxCommits ...int) (GitStatus, error) {
 		return GitStatus{}, err
 	}
 	commitCount := 0
-	if maxCommits == nil || len(maxCommits) == 0 {
-		maxCommits[0] = 10
-	}
 	commitIter, _ := g.Repo.Log(&git.LogOptions{From: ref.Hash()})
 	err = commitIter.ForEach(func(c *object.Commit) error {
 		if commitCount >= maxCommits[0] {
 			return nil
 		}
-		result.Commits = append(result.Commits, prettyPrintCommit(c))
+		result.Commits[commitCount] = prettyPrintCommit(c)
 		commitCount++
 		return nil
 	})
+
 	return result, err
 }
 
 func parseStatus(statusCode git.StatusCode) string {
 	switch statusCode {
 	case git.Modified:
-
 		return InfoText.Render("Modified")
 	case git.Added:
 		return InfoText.Render("Staged for addition (Added)")
