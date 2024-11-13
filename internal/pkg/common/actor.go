@@ -67,7 +67,7 @@ func (g *GitActor) Queue(key string, action func()) {
 	g.actions = append(g.actions, actionEntry{key, action})
 }
 
-func (g *GitActor) Iter() iter.Seq2[string, func()] {
+func (g *GitActor) Next() iter.Seq2[string, func()] {
 	return func(yield func(string, func()) bool) {
 		for _, action := range g.actions {
 			shouldContinue := yield(action.name, action.action)
