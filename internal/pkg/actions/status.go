@@ -22,7 +22,6 @@ func RunStatus(dirpath string, numOfCommits int) common.GitStatus {
 			"Commits", formatList(status.Commits),
 		).ItemStyle(common.InfoText),
 	)
-	println()
 	return status
 }
 
