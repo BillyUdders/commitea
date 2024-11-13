@@ -17,14 +17,10 @@ func RunStatus(dirpath string, numOfCommits int) common.GitStatus {
 	}
 	fmt.Println(
 		list.New(
-			"Files", formatList(status.Files),
-			"Branches", formatList(status.Branches),
-			"Commits", formatList(status.Commits),
+			"Files", common.TeaList(status.Files),
+			"Branches", common.TeaList(status.Branches),
+			"Commits", common.TeaList(status.Commits),
 		).ItemStyle(common.InfoText),
 	)
 	return status
-}
-
-func formatList(items []string) *list.List {
-	return list.New(items).Enumerator(common.CommiteaEnumerator).EnumeratorStyle(common.WarningText)
 }

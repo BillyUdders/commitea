@@ -15,5 +15,6 @@ func RunLog() {
 	if err != nil {
 		common.HandleError(err)
 	}
-	fmt.Println(list.New("Commits", status.Commits).ItemStyle(common.InfoText))
+	c := common.TeaList(status.Commits)
+	fmt.Println(list.New("Commits", c).ItemStyle(common.InfoText))
 }

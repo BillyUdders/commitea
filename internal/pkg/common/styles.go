@@ -43,11 +43,16 @@ var (
 	LogText3 = InfoText.Foreground(Purple)
 )
 
-func CommiteaEnumerator(_ list.Items, i int) string {
+func TeaEnumerator(_ list.Items, i int) string {
 	if i < 9 {
 		return fmt.Sprintf("0%d. ", i+1)
 	} else {
 		return fmt.Sprintf("%d. ", i+1)
 	}
+}
 
+func TeaList(items ...any) *list.List {
+	return list.New(items).
+		Enumerator(TeaEnumerator).
+		EnumeratorStyle(WarningText)
 }
