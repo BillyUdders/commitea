@@ -22,26 +22,18 @@ var (
 	DarkGray   = lipgloss.Color("#3b4252")
 	DarkerGray = lipgloss.Color("#2e3440")
 
-	SuccessText = lipgloss.NewStyle().
-			Bold(true).
-			Foreground(Green)
-
-	InfoText = lipgloss.NewStyle().
-			Bold(true).
-			Foreground(Blue)
-
-	ErrorText = lipgloss.NewStyle().
-			Bold(true).
-			Foreground(Red)
-
-	WarningText = lipgloss.NewStyle().
-			Bold(true).
-			Foreground(Orange)
-
-	LogText1 = InfoText.Foreground(Cyan)
-	LogText2 = InfoText.Foreground(Gray)
-	LogText3 = InfoText.Foreground(Purple)
+	SuccessText = style(Green, true)
+	InfoText    = style(Blue, true)
+	ErrorText   = style(Red, true)
+	WarningText = style(Orange, true)
+	LogText1    = style(Cyan, false)
+	LogText2    = style(Gray, false)
+	LogText3    = style(Purple, false)
 )
+
+func style(c lipgloss.TerminalColor, bold bool) lipgloss.Style {
+	return lipgloss.NewStyle().Bold(bold).Foreground(c)
+}
 
 func TeaEnumerator(_ list.Items, i int) string {
 	if i < 9 {
