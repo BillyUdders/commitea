@@ -2,6 +2,7 @@ package common
 
 import (
 	"fmt"
+	"github.com/charmbracelet/lipgloss/list"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
@@ -40,6 +41,14 @@ type GitObserver struct {
 
 type GitStatus struct {
 	Files, Branches, Commits []string
+}
+
+func (s *GitStatus) AsList() *list.List {
+	return list.New(
+		"Files", SubList(s.Files),
+		"Branches", SubList(s.Branches),
+		"Commits", SubList(s.Commits),
+	).ItemStyle(InfoText)
 }
 
 func (g *GitObserver) Status(maxCommits ...int) (GitStatus, error) {

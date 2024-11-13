@@ -2,9 +2,7 @@ package actions
 
 import (
 	"commitea/internal/pkg/common"
-	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss/list"
 	"net"
 	"os"
 	"runtime"
@@ -15,11 +13,11 @@ var (
 	UnixSocket    = socketInfo{address: "/tmp/commitea.sock", network: "unix"}
 )
 
+type socketMsg string
+
 type socketInfo struct {
 	address, network string
 }
-
-type socketMsg string
 
 type model struct {
 	socketInfo socketInfo
@@ -34,9 +32,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case socketMsg:
 		m.msg = msg
-
 	case tea.KeyMsg:
-
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
@@ -49,28 +45,19 @@ func (m model) View() string {
 	if msg := m.msg; msg == "" {
 		return common.SuccessText.Render("Welcome to watch!")
 	}
-
 	path := common.TrimAll(string(m.msg))
 	obs, err := common.NewGitObserver(path)
 	if err != nil {
 		return common.WarningText.Render(path, " is not a Git Repository!")
 	}
-
 	status, err := obs.Status(20)
 	if err != nil {
 		common.HandleError(err)
 	}
-	s := list.New(
-		"Files", list.New(status.Files),
-		"Branches", list.New(status.Branches),
-		"Commits", list.New(status.Commits),
-	).ItemStyle(common.InfoText)
-
-	return s.String()
+	return status.AsList().String()
 }
 
 func socketListener(info socketInfo, ch chan<- tea.Msg) {
-	// Remove the socket if it exists
 	if _, err := os.Stat(info.address); err == nil {
 		err = os.Remove(info.address)
 		if err != nil {
@@ -120,7 +107,6 @@ func Watch() {
 
 	_, err := p.Run()
 	if err != nil {
-		fmt.Println("Error starting Bubble Tea program:", err)
-		os.Exit(1)
+		common.HandleError(err)
 	}
 }

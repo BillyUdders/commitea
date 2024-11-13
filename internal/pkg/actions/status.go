@@ -3,7 +3,6 @@ package actions
 import (
 	"commitea/internal/pkg/common"
 	"fmt"
-	"github.com/charmbracelet/lipgloss/list"
 )
 
 func RunStatus(dirpath string, numOfCommits int) common.GitStatus {
@@ -15,12 +14,6 @@ func RunStatus(dirpath string, numOfCommits int) common.GitStatus {
 	if err != nil {
 		common.HandleError(err)
 	}
-	fmt.Println(
-		list.New(
-			"Files", common.SubList(status.Files),
-			"Branches", common.SubList(status.Branches),
-			"Commits", common.SubList(status.Commits),
-		).ItemStyle(common.InfoText),
-	)
+	fmt.Println(status.AsList().String())
 	return status
 }
