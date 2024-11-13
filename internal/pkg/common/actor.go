@@ -4,6 +4,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"iter"
+	"time"
 )
 
 func NewGitActor(repoPath string) (*GitActor, error) {
@@ -39,13 +40,15 @@ type GitActor struct {
 	Repo      *git.Repository
 	Commits   object.CommitIter
 	CommitMsg string
-	actions   []actionEntry
 	Err       error
+
+	actions []actionEntry
 }
 
 func (g *GitActor) StageAll() {
 	if g.Err == nil {
 		g.Err = g.Worktree.AddGlob(".")
+		time.Sleep(500 * time.Millisecond)
 	}
 }
 
@@ -53,6 +56,7 @@ func (g *GitActor) Commit() {
 	if g.Err == nil {
 		_, err := g.Worktree.Commit(g.CommitMsg, &git.CommitOptions{})
 		g.Err = err
+		time.Sleep(500 * time.Millisecond)
 	}
 }
 

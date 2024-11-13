@@ -68,6 +68,7 @@ func RunCommitForm() {
 	if err != nil {
 		common.HandleError(err)
 	} else {
+		println()
 		fmt.Println(common.InfoText.Render(symbol+" Commit message: ") + msg)
 		fmt.Println(common.SuccessText.Render(symbol + " Done!"))
 	}
@@ -76,7 +77,7 @@ func RunCommitForm() {
 func doCommit(c commitDetails) (string, error) {
 	actor, err := common.NewGitActor("")
 	if err != nil {
-		common.HandleError(err)
+		return "", err
 	}
 	actor.CommitMsg = c.commitMessage()
 	if c.shouldStageAll {
