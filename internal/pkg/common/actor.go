@@ -1,8 +1,10 @@
 package common
 
 import (
+	"github.com/elliotchance/orderedmap/v2"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
+	"iter"
 )
 
 func NewGitActor(repoPath string) (*GitActor, error) {
@@ -25,7 +27,8 @@ func NewGitActor(repoPath string) (*GitActor, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &GitActor{Worktree: w, Repo: repo, Commits: commits}, nil
+	actions := orderedmap.NewOrderedMap[string, func()]()
+	return &GitActor{Worktree: w, Repo: repo, Commits: commits, actions: actions}, nil
 }
 
 type GitActor struct {
@@ -33,6 +36,7 @@ type GitActor struct {
 	Repo      *git.Repository
 	Commits   object.CommitIter
 	CommitMsg string
+	actions   *orderedmap.OrderedMap[string, func()]
 	Err       error
 }
 
@@ -53,4 +57,12 @@ func (g *GitActor) Push() {
 	if g.Err == nil {
 		g.Err = g.Repo.Push(&git.PushOptions{})
 	}
+}
+
+func (g *GitActor) Queue(key string, action func()) {
+	g.actions.Set(key, action)
+}
+
+func (g *GitActor) Iterator() iter.Seq2[string, func()] {
+	return g.actions.Iterator()
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/huh/spinner"
-	"github.com/elliotchance/orderedmap/v2"
 )
 
 var symbol = "\ueafc"
@@ -80,17 +79,14 @@ func doCommit(c commitDetails) (string, error) {
 		common.HandleError(err)
 	}
 	actor.CommitMsg = c.commitMessage()
-
-	actions := orderedmap.NewOrderedMap[string, func()]()
 	if c.shouldStageAll {
-		actions.Set("Staging All", actor.StageAll)
+		actor.Queue("Staging All", actor.StageAll)
 	}
-	actions.Set("Commiting", actor.Commit)
+	actor.Queue("Commiting", actor.Commit)
 	if c.shouldPush {
-		actions.Set("Pushing", actor.Push)
+		actor.Queue("Pushing", actor.Push)
 	}
-
-	for key, fn := range actions.Iterator() {
+	for key, fn := range actor.Iterator() {
 		_ = spinner.New().
 			Title(fmt.Sprintf("%s...", key)).
 			Type(spinner.Line).
