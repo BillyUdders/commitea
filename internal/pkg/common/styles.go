@@ -29,22 +29,22 @@ var (
 	LogText1    = style(Cyan, false)
 	LogText2    = style(Gray, false)
 	LogText3    = style(Purple, false)
+
+	enumerator = func(_ list.Items, i int) string {
+		if i < 9 {
+			return fmt.Sprintf("0%d. ", i+1)
+		} else {
+			return fmt.Sprintf("%d. ", i+1)
+		}
+	}
 )
 
 func style(c lipgloss.TerminalColor, bold bool) lipgloss.Style {
 	return lipgloss.NewStyle().Bold(bold).Foreground(c)
 }
 
-func TeaEnumerator(_ list.Items, i int) string {
-	if i < 9 {
-		return fmt.Sprintf("0%d. ", i+1)
-	} else {
-		return fmt.Sprintf("%d. ", i+1)
-	}
-}
-
-func TeaList(items ...any) *list.List {
+func SubList(items ...any) *list.List {
 	return list.New(items).
-		Enumerator(TeaEnumerator).
+		Enumerator(enumerator).
 		EnumeratorStyle(WarningText)
 }

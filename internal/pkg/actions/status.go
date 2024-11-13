@@ -17,9 +17,9 @@ func RunStatus(dirpath string, numOfCommits int) common.GitStatus {
 	}
 	fmt.Println(
 		list.New(
-			"Files", common.TeaList(status.Files),
-			"Branches", common.TeaList(status.Branches),
-			"Commits", common.TeaList(status.Commits),
+			"Files", common.SubList(status.Files),
+			"Branches", common.SubList(status.Branches),
+			"Commits", common.SubList(status.Commits),
 		).ItemStyle(common.InfoText),
 	)
 	return status
