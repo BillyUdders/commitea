@@ -69,6 +69,7 @@ func RunCommitForm() {
 		common.HandleError(err)
 	} else {
 		println()
+		
 		fmt.Println(common.InfoText.Render(symbol+" Commit message: ") + msg)
 		fmt.Println(common.SuccessText.Render(symbol + " Done!"))
 	}
