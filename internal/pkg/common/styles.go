@@ -1,8 +1,10 @@
 package common
 
 import (
+	"fmt"
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/list"
 )
 
 var (
@@ -40,3 +42,12 @@ var (
 	LogText2 = InfoText.Foreground(Gray)
 	LogText3 = InfoText.Foreground(Purple)
 )
+
+func CommiteaEnumerator(_ list.Items, i int) string {
+	if i < 9 {
+		return fmt.Sprintf("0%d. ", i+1)
+	} else {
+		return fmt.Sprintf("%d. ", i+1)
+	}
+
+}

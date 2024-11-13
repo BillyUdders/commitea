@@ -17,11 +17,15 @@ func RunStatus(dirpath string, numOfCommits int) common.GitStatus {
 	}
 	fmt.Println(
 		list.New(
-			"Files", list.New(status.Files),
-			"Branches", list.New(status.Branches),
-			"Commits", list.New(status.Commits),
+			"Files", formatList(status.Files),
+			"Branches", formatList(status.Branches),
+			"Commits", formatList(status.Commits),
 		).ItemStyle(common.InfoText),
 	)
 	println()
 	return status
+}
+
+func formatList(items []string) *list.List {
+	return list.New(items).Enumerator(common.CommiteaEnumerator).EnumeratorStyle(common.WarningText)
 }
