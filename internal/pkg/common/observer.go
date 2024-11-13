@@ -110,13 +110,12 @@ func parseStatus(statusCode git.StatusCode) string {
 }
 
 func prettyPrintCommit(c *object.Commit) string {
-	idx := strings.Index(c.Message, ":")
-	var msg string
-	trimmed := TrimAll(c.Message)
+	msg := TrimAll(c.Message)
+	idx := strings.Index(msg, ":")
 	if idx == -1 {
-		msg = SuccessText.Render(trimmed)
+		msg = SuccessText.Render(msg)
 	} else {
-		msg = fmt.Sprintf(SuccessText.Underline(true).Render(trimmed[:idx]) + trimmed[idx:])
+		msg = fmt.Sprintf(SuccessText.Underline(true).Render(msg[:idx]) + msg[idx:])
 	}
 	return fmt.Sprintf(
 		"%s %s %s %s %s",
@@ -130,11 +129,14 @@ func prettyPrintCommit(c *object.Commit) string {
 
 func formatTime(t time.Time) string {
 	duration := time.Since(t)
+	days := int(duration.Hours() / 24)
 	hours := int(duration.Hours())
 	minutes := int(duration.Minutes()) % 60
 	seconds := int(duration.Seconds()) % 60
-	if hours > 0 {
-		return fmt.Sprintf("%d hours", hours)
+	if days > 0 {
+		return fmt.Sprintf("%d days", days)
+	} else if hours > 0 {
+		return fmt.Sprintf("%d hours and %d minutes ago", hours, minutes)
 	} else if minutes > 0 {
 		return fmt.Sprintf("%d minutes and %d seconds ago", minutes, seconds)
 	} else {

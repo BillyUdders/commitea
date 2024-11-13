@@ -13,7 +13,6 @@ func HandleError(err error) {
 }
 
 func TrimAll(str string) string {
-	processed := strings.ReplaceAll(str, "\n", " ")
-	processed = regexp.MustCompile(`\s{2,}`).ReplaceAllString(processed, " ")
-	return strings.TrimSpace(processed)
+	s := strings.ReplaceAll(str, "\n", " ")
+	return strings.TrimSpace(regexp.MustCompile(`\s{2,}`).ReplaceAllString(s, " "))
 }
