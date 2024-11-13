@@ -86,7 +86,7 @@ func doCommit(c commitDetails) (string, error) {
 	if c.shouldPush {
 		actor.Queue("Pushing", actor.Push)
 	}
-	for key, fn := range actor.Iterator() {
+	for key, fn := range actor.Iter() {
 		_ = spinner.New().
 			Title(fmt.Sprintf("%s...", key)).
 			Type(spinner.Line).

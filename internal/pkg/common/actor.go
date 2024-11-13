@@ -1,7 +1,6 @@
 package common
 
 import (
-	"github.com/elliotchance/orderedmap/v2"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"iter"
@@ -27,8 +26,12 @@ func NewGitActor(repoPath string) (*GitActor, error) {
 	if err != nil {
 		return nil, err
 	}
-	actions := orderedmap.NewOrderedMap[string, func()]()
-	return &GitActor{Worktree: w, Repo: repo, Commits: commits, actions: actions}, nil
+	return &GitActor{Worktree: w, Repo: repo, Commits: commits, actions: make([]actionEntry, 0)}, nil
+}
+
+type actionEntry struct {
+	name   string
+	action func()
 }
 
 type GitActor struct {
@@ -36,7 +39,7 @@ type GitActor struct {
 	Repo      *git.Repository
 	Commits   object.CommitIter
 	CommitMsg string
-	actions   *orderedmap.OrderedMap[string, func()]
+	actions   []actionEntry
 	Err       error
 }
 
@@ -60,9 +63,16 @@ func (g *GitActor) Push() {
 }
 
 func (g *GitActor) Queue(key string, action func()) {
-	g.actions.Set(key, action)
+	g.actions = append(g.actions, actionEntry{key, action})
 }
 
-func (g *GitActor) Iterator() iter.Seq2[string, func()] {
-	return g.actions.Iterator()
+func (g *GitActor) Iter() iter.Seq2[string, func()] {
+	return func(yield func(string, func()) bool) {
+		for _, action := range g.actions {
+			shouldContinue := yield(action.name, action.action)
+			if !shouldContinue {
+				return
+			}
+		}
+	}
 }
