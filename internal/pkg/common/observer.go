@@ -10,6 +10,24 @@ import (
 	"time"
 )
 
+type GitStatus struct {
+	Files, Branches, Commits []string
+}
+
+func (s *GitStatus) AsList() *list.List {
+	return list.New(
+		"Files", SubList(s.Files),
+		"Branches", SubList(s.Branches),
+		"Commits", SubList(s.Commits),
+	).ItemStyle(InfoText)
+}
+
+type GitObserver struct {
+	Repo     *git.Repository
+	Worktree *git.Worktree
+	Commits  object.CommitIter
+}
+
 func NewGitObserver(repoPath string) (*GitObserver, error) {
 	if repoPath == "" {
 		repoPath = "."
@@ -31,24 +49,6 @@ func NewGitObserver(repoPath string) (*GitObserver, error) {
 		return nil, err
 	}
 	return &GitObserver{Repo: r, Worktree: w, Commits: c}, nil
-}
-
-type GitObserver struct {
-	Repo     *git.Repository
-	Worktree *git.Worktree
-	Commits  object.CommitIter
-}
-
-type GitStatus struct {
-	Files, Branches, Commits []string
-}
-
-func (s *GitStatus) AsList() *list.List {
-	return list.New(
-		"Files", SubList(s.Files),
-		"Branches", SubList(s.Branches),
-		"Commits", SubList(s.Commits),
-	).ItemStyle(InfoText)
 }
 
 func (g *GitObserver) Status(maxCommits ...int) (GitStatus, error) {
