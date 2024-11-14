@@ -25,6 +25,7 @@ func main() {
 	if _, ok := verbs[command]; !ok {
 		common.Exit(inputErr("Unknown command: "+command, verbs))
 	}
+	
 	switch command {
 	case "commit":
 		actions.RunCommitForm()
