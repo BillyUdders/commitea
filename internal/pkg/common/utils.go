@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func HandleError(err error) {
+func Exit(err error) {
 	fmt.Println(ErrorText.Render("Error: " + err.Error()))
 	os.Exit(1)
 }

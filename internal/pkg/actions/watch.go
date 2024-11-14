@@ -52,7 +52,7 @@ func (m model) View() string {
 	}
 	status, err := obs.Status(20)
 	if err != nil {
-		common.HandleError(err)
+		common.Exit(err)
 	}
 	return status.AsList().String()
 }
@@ -61,27 +61,27 @@ func socketListener(info socketInfo, ch chan<- tea.Msg) {
 	if _, err := os.Stat(info.address); err == nil {
 		err = os.Remove(info.address)
 		if err != nil {
-			common.HandleError(err)
+			common.Exit(err)
 		}
 	}
 
 	listener, err := net.Listen(info.network, info.address)
 	if err != nil {
-		common.HandleError(err)
+		common.Exit(err)
 	}
 	defer listener.Close()
 
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			common.HandleError(err)
+			common.Exit(err)
 		}
 		go func(conn net.Conn) {
 			defer conn.Close()
 			buf := make([]byte, 1024)
 			n, err := conn.Read(buf)
 			if err != nil {
-				common.HandleError(err)
+				common.Exit(err)
 			}
 			ch <- socketMsg(buf[:n])
 		}(conn)
@@ -107,6 +107,6 @@ func Watch() {
 
 	_, err := p.Run()
 	if err != nil {
-		common.HandleError(err)
+		common.Exit(err)
 	}
 }

@@ -61,12 +61,12 @@ func RunCommitForm() {
 	).WithTheme(common.Base16)
 	err := form.Run()
 	if err != nil {
-		common.HandleError(err)
+		common.Exit(err)
 	}
 
 	msg, err := doCommit(c)
 	if err != nil {
-		common.HandleError(err)
+		common.Exit(err)
 	} else {
 		fmt.Println(common.InfoText.Render(symbol+" Commit message: ") + msg)
 		fmt.Println(common.SuccessText.Render(symbol + " Done!"))

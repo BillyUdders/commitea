@@ -19,11 +19,11 @@ func main() {
 		"sync":   true,
 	}
 	if len(os.Args) < 2 {
-		common.HandleError(inputError("No command provided", verbs))
+		common.Exit(inputErr("No command provided", verbs))
 	}
 	command := os.Args[1]
 	if _, ok := verbs[command]; !ok {
-		common.HandleError(inputError("Unknown command: "+command, verbs))
+		common.Exit(inputErr("Unknown command: "+command, verbs))
 	}
 	switch command {
 	case "commit":
@@ -39,6 +39,6 @@ func main() {
 	}
 }
 
-func inputError(command string, m map[string]bool) error {
+func inputErr(command string, m map[string]bool) error {
 	return errors.New(fmt.Sprintf("%s. Use one of: %s \n", command, slices.Collect(maps.Keys(m))))
 }

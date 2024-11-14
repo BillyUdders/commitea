@@ -8,11 +8,11 @@ import (
 func RunStatus(dirpath string, numOfCommits int) common.GitStatus {
 	obs, err := common.NewGitObserver(dirpath)
 	if err != nil {
-		common.HandleError(err)
+		common.Exit(err)
 	}
 	status, err := obs.Status(numOfCommits)
 	if err != nil {
-		common.HandleError(err)
+		common.Exit(err)
 	}
 	fmt.Println(status.AsList().String())
 	return status
