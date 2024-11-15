@@ -145,9 +145,9 @@ func formatTime(t time.Time) string {
 	if days > 0 {
 		return fmt.Sprintf("%d days", days)
 	} else if hours > 0 {
-		return fmt.Sprintf("%d hours and %d minutes ago", hours, minutes)
+		return fmt.Sprintf("%d hours", hours)
 	} else if minutes > 0 {
-		return fmt.Sprintf("%d minutes and %d seconds ago", minutes, seconds)
+		return fmt.Sprintf("%d minutes", minutes)
 	} else {
 		return fmt.Sprintf("%d seconds ago", seconds)
 	}
