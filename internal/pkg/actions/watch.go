@@ -3,10 +3,10 @@ package actions
 import (
 	"commitea/internal/pkg/common"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/fsnotify/fsnotify"
 	"net"
 	"os"
 	"runtime"
-	"time"
 )
 
 var (
@@ -24,7 +24,10 @@ type socketInfo struct {
 
 type model struct {
 	socketInfo socketInfo
+	watcher    *fsnotify.Watcher
+	gitObs     *common.GitObserver
 	msg        socketMsg
+	msgHistory []socketMsg
 }
 
 func (m model) Init() tea.Cmd {
@@ -36,7 +39,25 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case refreshMsg:
 		return m, nil
 	case socketMsg:
-		m.msg = msg
+		lastPath := m.msgHistory[len(m.msgHistory)-1]
+		path := socketMsg(common.TrimAll(string(msg)))
+		if lastPath != path {
+			err := m.watcher.Add(string(path))
+			if err != nil {
+				return nil, tea.Quit
+			}
+			err = m.watcher.Remove(string(path))
+			if err != nil {
+				return nil, tea.Quit
+			}
+			observer, err := common.NewGitObserver(string(path))
+			if err != nil {
+				return nil, tea.Quit
+			}
+			m.gitObs = observer
+			m.msgHistory = append(m.msgHistory, path)
+			m.msg = path
+		}
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
@@ -47,15 +68,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	if msg := m.msg; msg == "" {
+	if m.msg == "" {
 		return common.SuccessText.Render("Welcome to watch!")
 	}
-	path := common.TrimAll(string(m.msg))
-	obs, err := common.NewGitObserver(path)
-	if err != nil {
-		return common.WarningText.Render(path, " is not a Git Repository!")
+	if m.gitObs != nil {
+		return common.WarningText.Render(string(m.msg), " is not a Git Repository!")
 	}
-	status, err := obs.Status(20)
+	status, err := m.gitObs.Status(20)
 	if err != nil {
 		common.Exit(err)
 	}
@@ -69,13 +88,11 @@ func socketListener(info socketInfo, ch chan<- tea.Msg) {
 			common.Exit(err)
 		}
 	}
-
 	listener, err := net.Listen(info.network, info.address)
 	if err != nil {
 		common.Exit(err)
 	}
 	defer listener.Close()
-
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
@@ -93,14 +110,21 @@ func socketListener(info socketInfo, ch chan<- tea.Msg) {
 	}
 }
 
-func refresh(interval time.Duration, ch chan tea.Msg) {
+func refresh(watcher *fsnotify.Watcher, ch chan tea.Msg) {
 	go func() {
-		ticker := time.NewTicker(interval)
-		defer ticker.Stop()
 		for {
 			select {
-			case <-ticker.C:
-				ch <- refreshMsg("")
+			case event, ok := <-watcher.Events:
+				if !ok {
+					return
+				}
+				if event.Op&fsnotify.Write == fsnotify.Write {
+					ch <- refreshMsg("")
+				}
+			case _, ok := <-watcher.Errors:
+				if !ok {
+					return
+				}
 			}
 		}
 	}()
@@ -114,17 +138,31 @@ func Watch() {
 		info = UnixSocket
 	}
 
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		common.Exit(err)
+	}
+	defer watcher.Close()
+
 	msgChannel := make(chan tea.Msg)
 	go socketListener(info, msgChannel)
-	go refresh(100*time.Millisecond, msgChannel)
-	p := tea.NewProgram(model{info, ""})
+	go refresh(watcher, msgChannel)
+
+	p := tea.NewProgram(
+		model{
+			socketInfo: info,
+			watcher:    watcher,
+			gitObs:     nil,
+		},
+	)
+
 	go func() {
 		for msg := range msgChannel {
 			p.Send(msg)
 		}
 	}()
 
-	_, err := p.Run()
+	_, err = p.Run()
 	if err != nil {
 		common.Exit(err)
 	}
