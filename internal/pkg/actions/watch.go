@@ -39,25 +39,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case refreshMsg:
 		return m, nil
 	case socketMsg:
-		lastPath := m.msgHistory[len(m.msgHistory)-1]
 		path := socketMsg(common.TrimAll(string(msg)))
-		if lastPath != path {
-			err := m.watcher.Add(string(path))
+		if len(m.msgHistory) == 0 {
+			err := watch(&m, path, "")
 			if err != nil {
 				return nil, tea.Quit
 			}
-			err = m.watcher.Remove(string(path))
-			if err != nil {
-				return nil, tea.Quit
+		} else {
+			lastPath := m.msgHistory[len(m.msgHistory)-1]
+			if lastPath != path {
+				err := watch(&m, path, lastPath)
+				if err != nil {
+					return nil, tea.Quit
+				}
 			}
-			observer, err := common.NewGitObserver(string(path))
-			if err != nil {
-				return nil, tea.Quit
-			}
-			m.gitObs = observer
-			m.msgHistory = append(m.msgHistory, path)
-			m.msg = path
 		}
+		return m, nil
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
@@ -71,7 +68,7 @@ func (m model) View() string {
 	if m.msg == "" {
 		return common.SuccessText.Render("Welcome to watch!")
 	}
-	if m.gitObs != nil {
+	if m.gitObs == nil {
 		return common.WarningText.Render(string(m.msg), " is not a Git Repository!")
 	}
 	status, err := m.gitObs.Status(20)
@@ -79,6 +76,27 @@ func (m model) View() string {
 		common.Exit(err)
 	}
 	return status.AsList().String()
+}
+
+func watch(m *model, path, lastPath socketMsg) error {
+	err := m.watcher.Add(string(path))
+	if err != nil {
+		return err
+	}
+	if lastPath != "" {
+		err = m.watcher.Remove(string(lastPath))
+		if err != nil {
+			return err
+		}
+	}
+	observer, err := common.NewGitObserver(string(path))
+	if err != nil {
+		// TODO: fine for now, need to check error type
+	}
+	m.gitObs = observer
+	m.msgHistory = append(m.msgHistory, path)
+	m.msg = path
+	return nil
 }
 
 func socketListener(info socketInfo, ch chan<- tea.Msg) {
@@ -110,16 +128,16 @@ func socketListener(info socketInfo, ch chan<- tea.Msg) {
 	}
 }
 
-func refresh(watcher *fsnotify.Watcher, ch chan tea.Msg) {
+func fsWatcher(watcher *fsnotify.Watcher, ch chan tea.Msg) {
 	go func() {
 		for {
 			select {
 			case event, ok := <-watcher.Events:
+				ch <- refreshMsg("")
 				if !ok {
 					return
 				}
 				if event.Op&fsnotify.Write == fsnotify.Write {
-					ch <- refreshMsg("")
 				}
 			case _, ok := <-watcher.Errors:
 				if !ok {
@@ -146,13 +164,14 @@ func Watch() {
 
 	msgChannel := make(chan tea.Msg)
 	go socketListener(info, msgChannel)
-	go refresh(watcher, msgChannel)
+	go fsWatcher(watcher, msgChannel)
 
 	p := tea.NewProgram(
 		model{
 			socketInfo: info,
 			watcher:    watcher,
 			gitObs:     nil,
+			msgHistory: make([]socketMsg, 0),
 		},
 	)
 
