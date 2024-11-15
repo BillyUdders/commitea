@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"runtime"
+	"time"
 )
 
 var (
@@ -14,6 +15,8 @@ var (
 )
 
 type socketMsg string
+
+type refreshMsg string
 
 type socketInfo struct {
 	address, network string
@@ -30,6 +33,8 @@ func (m model) Init() tea.Cmd {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case refreshMsg:
+		return m, nil
 	case socketMsg:
 		m.msg = msg
 	case tea.KeyMsg:
@@ -88,6 +93,19 @@ func socketListener(info socketInfo, ch chan<- tea.Msg) {
 	}
 }
 
+func refresh(interval time.Duration, ch chan tea.Msg) {
+	go func() {
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				ch <- refreshMsg("")
+			}
+		}
+	}()
+}
+
 func Watch() {
 	var info socketInfo
 	if runtime.GOOS == "windows" {
@@ -98,6 +116,7 @@ func Watch() {
 
 	msgChannel := make(chan tea.Msg)
 	go socketListener(info, msgChannel)
+	go refresh(100*time.Millisecond, msgChannel)
 	p := tea.NewProgram(model{info, ""})
 	go func() {
 		for msg := range msgChannel {
