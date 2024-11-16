@@ -47,7 +47,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		} else {
 			lastPath := m.msgHistory[len(m.msgHistory)-1]
-			if lastPath != path {
+			if path != lastPath {
 				err := watch(&m, path, lastPath)
 				if err != nil {
 					return nil, tea.Quit
@@ -91,7 +91,6 @@ func watch(m *model, path, lastPath socketMsg) error {
 	}
 	observer, err := common.NewGitObserver(string(path))
 	if err != nil {
-		// TODO: fine for now, need to check error type
 	}
 	m.gitObs = observer
 	m.msgHistory = append(m.msgHistory, path)
@@ -132,13 +131,8 @@ func fsWatcher(watcher *fsnotify.Watcher, ch chan tea.Msg) {
 	go func() {
 		for {
 			select {
-			case event, ok := <-watcher.Events:
+			case _, _ = <-watcher.Events:
 				ch <- refreshMsg("")
-				if !ok {
-					return
-				}
-				if event.Op&fsnotify.Write == fsnotify.Write {
-				}
 			case _, ok := <-watcher.Errors:
 				if !ok {
 					return
