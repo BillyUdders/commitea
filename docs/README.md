@@ -1,7 +1,5 @@
 # Commitea
 
-<img src="banner.png" alt="drawing"/>
-
 **Commitea** A git tool that combines all my best practice stuff into simple commands and a full TUI mode for power
 browsing.
 
