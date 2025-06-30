@@ -78,7 +78,6 @@ func RunCommitForm() {
 	if err != nil {
 		common.Exit(err)
 	}
-
 	msg, err := doCommit(c)
 	if err != nil {
 		common.Exit(err)
