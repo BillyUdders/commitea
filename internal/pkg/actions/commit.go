@@ -15,6 +15,7 @@ type commitDetails struct {
 	description    string
 	shouldStageAll bool
 	shouldPush     bool
+	turboCommit    bool
 }
 
 func (c commitDetails) commitMessage() string {
@@ -27,37 +28,51 @@ func RunCommitForm() {
 		fmt.Println(common.WarningText.Render(symbol + " No files to commit."))
 		return
 	}
-
 	c := commitDetails{
 		shouldStageAll: true,
 		shouldPush:     true,
+		turboCommit:    true,
 	}
-	form := huh.NewForm(
-		huh.NewGroup(
-			huh.NewSelect[string]().
-				Title(common.InfoText.Render("Choose commit type:")).
-				Options(
-					huh.NewOption("Feature", "feature"),
-					huh.NewOption("Hotfix", "hotfix"),
-					huh.NewOption("Chore", "chore"),
-				).
-				Value(&c.commitType),
-		),
-		huh.NewGroup(
-			huh.NewInput().
-				Title(common.InfoText.Render("Enter commit subject")).
-				Value(&c.subject),
-			huh.NewInput().
-				Title(common.InfoText.Render("Write a description (Max 200 characters)")).
-				CharLimit(200).
-				Value(&c.description),
+
+	typeGroup := []huh.Field{
+		huh.NewSelect[string]().
+			Title(common.InfoText.Render("Choose commit type:")).
+			Options(
+				huh.NewOption("Feature", "feature"),
+				huh.NewOption("Hotfix", "hotfix"),
+				huh.NewOption("Chore", "chore"),
+			).
+			Value(&c.commitType),
+	}
+
+	detailsGroup := []huh.Field{
+		huh.NewInput().
+			Title(common.InfoText.Render("Enter commit subject")).
+			Value(&c.subject),
+		huh.NewInput().
+			Title(common.InfoText.Render("Write a description (Max 200 characters)")).
+			CharLimit(200).
+			Value(&c.description),
+	}
+
+	if !c.turboCommit {
+		detailsGroup = append(
+			detailsGroup,
 			huh.NewConfirm().
 				Title(common.InfoText.Render("Stage all?")).
 				Value(&c.shouldStageAll),
+		)
+		detailsGroup = append(
+			detailsGroup,
 			huh.NewConfirm().
 				Title(common.InfoText.Render("Push?")).
 				Value(&c.shouldPush),
-		),
+		)
+	}
+
+	form := huh.NewForm(
+		huh.NewGroup(typeGroup...),
+		huh.NewGroup(detailsGroup...),
 	).WithTheme(common.Base16)
 	err := form.Run()
 	if err != nil {
@@ -79,13 +94,21 @@ func doCommit(c commitDetails) (string, error) {
 		return "", err
 	}
 	actor.CommitMsg = c.commitMessage()
-	if c.shouldStageAll {
+
+	if c.turboCommit {
 		actor.Queue("Staging All", actor.StageAll)
-	}
-	actor.Queue("Commiting", actor.Commit)
-	if c.shouldPush {
+		actor.Queue("Commiting", actor.Commit)
 		actor.Queue("Pushing", actor.Push)
+	} else {
+		if c.shouldStageAll {
+			actor.Queue("Staging All", actor.StageAll)
+		}
+		actor.Queue("Commiting", actor.Commit)
+		if c.shouldPush {
+			actor.Queue("Pushing", actor.Push)
+		}
 	}
+
 	for key, fn := range actor.Next() {
 		_ = spinner.New().
 			Title(fmt.Sprintf("%s...", key)).

@@ -32,8 +32,6 @@ func main() {
 		actions.RunLog()
 	case "status":
 		actions.RunStatus("", 20)
-	case "watch":
-		actions.Watch()
 	case "sync":
 		fmt.Println("Executing 'sync' command...")
 	}
