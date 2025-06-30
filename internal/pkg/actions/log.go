@@ -7,7 +7,7 @@ import (
 )
 
 func RunLog() {
-	obs, err := common.NewGitObserver("")
+	obs, err := common.NewGitObserver()
 	if err != nil {
 		common.Exit(err)
 	}

@@ -28,9 +28,11 @@ type GitObserver struct {
 	Commits  object.CommitIter
 }
 
-func NewGitObserver(repoPath string) (*GitObserver, error) {
-	if repoPath == "" {
-		repoPath = "."
+func NewGitObserver() (*GitObserver, error) {
+	repoPath := "."
+	path, err := FindGitRepoRoot(repoPath)
+	if err != nil {
+		repoPath = path
 	}
 	r, err := git.PlainOpen(repoPath)
 	if err != nil {

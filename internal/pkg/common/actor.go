@@ -6,9 +6,11 @@ import (
 	"iter"
 )
 
-func NewGitActor(repoPath string) (*GitActor, error) {
-	if repoPath == "" {
-		repoPath = "."
+func NewGitActor() (*GitActor, error) {
+	repoPath := "."
+	path, err := FindGitRepoRoot(repoPath)
+	if err != nil {
+		repoPath = path
 	}
 	repo, err := git.PlainOpen(repoPath)
 	if err != nil {

@@ -23,7 +23,7 @@ func (c commitDetails) commitMessage() string {
 }
 
 func RunCommitForm() {
-	status := RunStatus("", 5)
+	status := RunStatus(5)
 	if len(status.Files) == 0 {
 		fmt.Println(common.WarningText.Render(symbol + " No files to commit."))
 		return
@@ -88,7 +88,7 @@ func RunCommitForm() {
 }
 
 func doCommit(c commitDetails) (string, error) {
-	actor, err := common.NewGitActor("")
+	actor, err := common.NewGitActor()
 	if err != nil {
 		return "", err
 	}

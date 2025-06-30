@@ -5,8 +5,8 @@ import (
 	"fmt"
 )
 
-func RunStatus(dirpath string, numOfCommits int) common.GitStatus {
-	obs, err := common.NewGitObserver(dirpath)
+func RunStatus(numOfCommits int) common.GitStatus {
+	obs, err := common.NewGitObserver()
 	if err != nil {
 		common.Exit(err)
 	}
