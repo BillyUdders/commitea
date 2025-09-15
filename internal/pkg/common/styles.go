@@ -43,8 +43,12 @@ func style(c lipgloss.TerminalColor, bold bool) lipgloss.Style {
 	return lipgloss.NewStyle().Bold(bold).Foreground(c)
 }
 
-func SubList(items ...any) *list.List {
-	return list.New(items).
+func SubList(items []string) *list.List {
+	entries := make([]any, 0, len(items))
+	for _, item := range items {
+		entries = append(entries, item)
+	}
+	return list.New(entries...).
 		Enumerator(enumerator).
 		EnumeratorStyle(WarningText)
 }

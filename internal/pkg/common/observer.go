@@ -1,13 +1,17 @@
 package common
 
 import (
+	"errors"
 	"fmt"
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/charmbracelet/lipgloss/list"
 	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/object"
-	"strings"
-	"time"
+	"github.com/go-git/go-git/v6/plumbing/storer"
 )
 
 type GitStatus struct {
@@ -25,7 +29,6 @@ func (s *GitStatus) AsList() *list.List {
 type GitObserver struct {
 	Repo     *git.Repository
 	Worktree *git.Worktree
-	Commits  object.CommitIter
 }
 
 func NewGitObserver() (*GitObserver, error) {
@@ -43,15 +46,7 @@ func NewGitObserver() (*GitObserver, error) {
 	if err != nil {
 		return nil, err
 	}
-	ref, err := r.Head()
-	if err != nil {
-		return nil, err
-	}
-	c, err := r.Log(&git.LogOptions{From: ref.Hash()})
-	if err != nil {
-		return nil, err
-	}
-	return &GitObserver{Repo: r, Worktree: w, Commits: c}, nil
+	return &GitObserver{Repo: r, Worktree: w}, nil
 }
 
 func (g *GitObserver) Status(maxCommits ...int) (GitStatus, error) {
@@ -60,45 +55,68 @@ func (g *GitObserver) Status(maxCommits ...int) (GitStatus, error) {
 		limit = maxCommits[0]
 	}
 
-	result := GitStatus{
-		Files:    make([]string, 0),
-		Branches: make([]string, 0),
-		Commits:  make([]string, limit),
-	}
-	ref, err := g.Repo.Head()
+	wtStatus, err := g.Worktree.Status()
 	if err != nil {
-		return GitStatus{}, err
-	}
-	status, err := g.Worktree.Status()
-	if err != nil {
-		return GitStatus{}, err
-	}
-	for filePath, fileStatus := range status {
-		sc := parseStatus(fileStatus.Worktree)
-		result.Files = append(result.Files, fmt.Sprintf("%s: %s", filePath, sc))
+		return GitStatus{}, fmt.Errorf("get worktree status: %w", err)
 	}
 
-	refIter, _ := g.Repo.Branches()
-	err = refIter.ForEach(func(r *plumbing.Reference) error {
-		result.Branches = append(result.Branches, r.Name().Short())
-		return nil
-	})
-	_, err = g.Repo.CommitObject(ref.Hash())
-	if err != nil {
-		return GitStatus{}, err
+	filePaths := make([]string, 0, len(wtStatus))
+	for path := range wtStatus {
+		filePaths = append(filePaths, path)
 	}
-	commitCount := 0
-	commitIter, _ := g.Repo.Log(&git.LogOptions{From: ref.Hash()})
-	err = commitIter.ForEach(func(c *object.Commit) error {
-		if commitCount >= limit {
-			return nil
+	sort.Strings(filePaths)
+
+	files := make([]string, 0, len(filePaths))
+	for _, path := range filePaths {
+		entry := wtStatus[path]
+		files = append(files, fmt.Sprintf("%s: %s", path, parseStatus(entry.Worktree)))
+	}
+
+	branchIter, err := g.Repo.Branches()
+	if err != nil {
+		return GitStatus{}, fmt.Errorf("list branches: %w", err)
+	}
+	defer branchIter.Close()
+
+	branches := make([]string, 0)
+	if err := branchIter.ForEach(func(r *plumbing.Reference) error {
+		branches = append(branches, r.Name().Short())
+		return nil
+	}); err != nil {
+		return GitStatus{}, fmt.Errorf("iterate branches: %w", err)
+	}
+	sort.Strings(branches)
+
+	headRef, err := g.Repo.Head()
+	if err != nil {
+		if errors.Is(err, plumbing.ErrReferenceNotFound) {
+			return GitStatus{Files: files, Branches: branches, Commits: []string{}}, nil
 		}
-		result.Commits[commitCount] = prettyPrintCommit(c)
-		commitCount++
+		return GitStatus{}, fmt.Errorf("resolve HEAD: %w", err)
+	}
+
+	commitIter, err := g.Repo.Log(&git.LogOptions{From: headRef.Hash()})
+	if err != nil {
+		return GitStatus{}, fmt.Errorf("open commit log: %w", err)
+	}
+	defer commitIter.Close()
+
+	commits := make([]string, 0, limit)
+	err = commitIter.ForEach(func(c *object.Commit) error {
+		if len(commits) >= limit {
+			return storer.ErrStop
+		}
+		commits = append(commits, prettyPrintCommit(c))
 		return nil
 	})
+	if errors.Is(err, storer.ErrStop) {
+		err = nil
+	}
+	if err != nil {
+		return GitStatus{}, fmt.Errorf("iterate commits: %w", err)
+	}
 
-	return result, err
+	return GitStatus{Files: files, Branches: branches, Commits: commits}, nil
 }
 
 func parseStatus(statusCode git.StatusCode) string {
