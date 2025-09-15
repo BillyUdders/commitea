@@ -76,6 +76,7 @@ func (g *GitObserver) Status(maxCommits ...int) (GitStatus, error) {
 	if err != nil {
 		return GitStatus{}, fmt.Errorf("list branches: %w", err)
 	}
+	defer branchIter.Close()
 
 	branches := make([]string, 0)
 	if err := branchIter.ForEach(func(r *plumbing.Reference) error {
