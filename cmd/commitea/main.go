@@ -3,11 +3,12 @@ package main
 import (
 	"commitea/internal/pkg/actions"
 	"commitea/internal/pkg/common"
-	"errors"
 	"fmt"
 	"maps"
 	"os"
 	"slices"
+	"sort"
+	"strings"
 )
 
 func main() {
@@ -38,5 +39,7 @@ func main() {
 }
 
 func inputErr(command string, m map[string]bool) error {
-	return errors.New(fmt.Sprintf("%s. Use one of: %s \n", command, slices.Collect(maps.Keys(m))))
+	verbs := slices.Collect(maps.Keys(m))
+	sort.Strings(verbs)
+	return fmt.Errorf("%s. Use one of: %s", command, strings.Join(verbs, ", "))
 }

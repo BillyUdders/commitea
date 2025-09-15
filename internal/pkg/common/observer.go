@@ -78,17 +78,25 @@ func (g *GitObserver) Status(maxCommits ...int) (GitStatus, error) {
 		result.Files = append(result.Files, fmt.Sprintf("%s: %s", filePath, sc))
 	}
 
-	refIter, _ := g.Repo.Branches()
-	err = refIter.ForEach(func(r *plumbing.Reference) error {
-		result.Branches = append(result.Branches, r.Name().Short())
-		return nil
-	})
-	_, err = g.Repo.CommitObject(ref.Hash())
+	refIter, err := g.Repo.Branches()
 	if err != nil {
 		return GitStatus{}, err
 	}
+	if err := refIter.ForEach(func(r *plumbing.Reference) error {
+		result.Branches = append(result.Branches, r.Name().Short())
+		return nil
+	}); err != nil {
+		return GitStatus{}, err
+	}
+	if _, err = g.Repo.CommitObject(ref.Hash()); err != nil {
+		return GitStatus{}, err
+	}
 	commitCount := 0
-	commitIter, _ := g.Repo.Log(&git.LogOptions{From: ref.Hash()})
+	commitIter, err := g.Repo.Log(&git.LogOptions{From: ref.Hash()})
+	if err != nil {
+		return GitStatus{}, err
+	}
+	defer commitIter.Close()
 	err = commitIter.ForEach(func(c *object.Commit) error {
 		if commitCount >= limit {
 			return nil
