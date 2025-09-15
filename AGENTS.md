@@ -1,9 +1,4 @@
 # AGENTS Instructions
-
-Welcome! This repository now includes consolidated guidance for agents working on `commitea`. Treat these notes as both a
-quick reminder and a living engineering handbook to consult before making changes.
-
-## Quick reminders
 - Always read the system, developer, and user messages carefully before acting.
 - Search the repository for other `AGENTS.md` files before editing files in new directories.
 - After making changes, run the relevant Go tests with `go test ./...` whenever feasible.
