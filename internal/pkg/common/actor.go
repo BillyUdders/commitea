@@ -10,8 +10,9 @@ func NewGitActor() (*GitActor, error) {
 	repoPath := "."
 	path, err := FindGitRepoRoot(repoPath)
 	if err != nil {
-		repoPath = path
+		return nil, err
 	}
+	repoPath = path
 	repo, err := git.PlainOpen(repoPath)
 	if err != nil {
 		return nil, err
