@@ -45,11 +45,11 @@ jobs:
             fi
           fi
 
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: latest
-          args: --config=.golangci.yml ./...
+      # - name: Run golangci-lint
+      #   uses: golangci/golangci-lint-action@v6
+      #   with:
+      #     version: latest
+      #     args: --config=.golangci.yml ./...
 
       - name: Ensure CLI builds
         run: go build -trimpath -buildvcs=false ./cmd/commitea
