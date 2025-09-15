@@ -20,7 +20,10 @@ func TrimAll(str string) string {
 }
 
 func FindGitRepoRoot(startDir string) (string, error) {
-	dir := startDir
+	dir, err := filepath.Abs(startDir)
+	if err != nil {
+		return "", err
+	}
 	for {
 		if _, err := os.Stat(filepath.Join(dir, ".git")); err == nil {
 			return dir, nil

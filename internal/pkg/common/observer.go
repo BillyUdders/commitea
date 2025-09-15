@@ -32,8 +32,9 @@ func NewGitObserver() (*GitObserver, error) {
 	repoPath := "."
 	path, err := FindGitRepoRoot(repoPath)
 	if err != nil {
-		repoPath = path
+		return nil, err
 	}
+	repoPath = path
 	r, err := git.PlainOpen(repoPath)
 	if err != nil {
 		return nil, err
@@ -54,14 +55,15 @@ func NewGitObserver() (*GitObserver, error) {
 }
 
 func (g *GitObserver) Status(maxCommits ...int) (GitStatus, error) {
-	if maxCommits == nil || len(maxCommits) == 0 {
-		maxCommits[0] = 10
+	limit := 10
+	if len(maxCommits) > 0 && maxCommits[0] > 0 {
+		limit = maxCommits[0]
 	}
 
 	result := GitStatus{
 		Files:    make([]string, 0),
 		Branches: make([]string, 0),
-		Commits:  make([]string, maxCommits[0]),
+		Commits:  make([]string, limit),
 	}
 	ref, err := g.Repo.Head()
 	if err != nil {
@@ -88,7 +90,7 @@ func (g *GitObserver) Status(maxCommits ...int) (GitStatus, error) {
 	commitCount := 0
 	commitIter, _ := g.Repo.Log(&git.LogOptions{From: ref.Hash()})
 	err = commitIter.ForEach(func(c *object.Commit) error {
-		if commitCount >= maxCommits[0] {
+		if commitCount >= limit {
 			return nil
 		}
 		result.Commits[commitCount] = prettyPrintCommit(c)
@@ -126,7 +128,7 @@ func prettyPrintCommit(c *object.Commit) string {
 	if idx == -1 {
 		msg = SuccessText.Render(msg)
 	} else {
-		msg = fmt.Sprintf(SuccessText.Underline(true).Render(msg[:idx]) + msg[idx:])
+		msg = SuccessText.Underline(true).Render(msg[:idx]) + msg[idx:]
 	}
 	return fmt.Sprintf(
 		"%s %s %s %s %s",
